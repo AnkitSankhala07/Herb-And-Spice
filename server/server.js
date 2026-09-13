@@ -98,8 +98,9 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 5000;
 
-// ── Auto-fix port conflicts & start server ──
+// ── Auto-fix port conflicts & start server (Windows dev only) ──
 const killProcessOnPort = (port) => {
+    if (process.platform !== 'win32') return false;
     try {
         const result = execSync(`netstat -ano | findstr ":${port}" | findstr "LISTENING"`, { encoding: 'utf-8' });
         const lines = result.trim().split('\n');
