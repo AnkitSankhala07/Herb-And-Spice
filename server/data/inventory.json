@@ -1,0 +1,26 @@
+[
+    {
+        "name": "Tomato",
+        "quantity": 50,
+        "unit": "kg",
+        "threshold": 5
+    },
+    {
+        "name": "Cheese",
+        "quantity": 20,
+        "unit": "kg",
+        "threshold": 3
+    },
+    {
+        "name": "Burger Bun",
+        "quantity": 100,
+        "unit": "pcs",
+        "threshold": 20
+    },
+    {
+        "name": "Chicken Patty",
+        "quantity": 40,
+        "unit": "pcs",
+        "threshold": 10
+    }
+]
