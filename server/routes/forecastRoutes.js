@@ -1,6 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { getHistoricalDemand, predictDemand, getRestockSuggestions } = require('../controllers/forecastController');
+const { protect, adminOnly } = require('../middleware/authMiddleware');
+
+// Restrict demand forecasting and inventory restocking intelligence to authenticated Admins
+router.use(protect, adminOnly);
 
 // GET /api/forecast/demand?date=YYYY-MM-DD — Predict demand for a specific date
 router.get('/demand', predictDemand);

@@ -1,10 +1,13 @@
 import io from 'socket.io-client';
 import axios from 'axios';
 
-// Use the current hostname so it works from both localhost AND phone (via IP)
-const HOST = window.location.hostname;
-const SOCKET_URL = `http://${HOST}:5000`;
-const API_URL = `http://${HOST}:5000/api`;
+// Protocol and host detection supporting HTTPS/WSS and environment overrides
+const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
+const defaultHttpProto = isHttps ? 'https:' : 'http:';
+const HOST = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+
+const API_URL = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL) || `${defaultHttpProto}//${HOST}:5000/api`;
+const SOCKET_URL = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_SOCKET_URL) || `${defaultHttpProto}//${HOST}:5000`;
 
 // Robust Socket.IO config — prevents auto-disconnect on phones / unstable WiFi
 export const socket = io(SOCKET_URL, {

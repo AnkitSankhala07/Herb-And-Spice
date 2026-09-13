@@ -20,8 +20,11 @@ const getLocalNetworkIP = () => {
     return 'localhost'; // absolute fallback
 };
 
-// Build QR-safe frontend URL — always uses the real network IP
+// Build QR-safe frontend URL — prioritizes configured FRONTEND_URL, fallback to local network IP
 const getFrontendUrl = () => {
+    if (process.env.FRONTEND_URL) {
+        return process.env.FRONTEND_URL.replace(/\/+$/, '');
+    }
     const ip = getLocalNetworkIP();
     return `http://${ip}:5173`;
 };

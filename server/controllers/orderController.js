@@ -40,27 +40,21 @@ const createOrder = async (req, res) => {
                 menuItemDoc = await MenuItem.findOne({ name: item.name });
             }
 
-            let price = 0;
-            if (menuItemDoc) {
-                price = Number(menuItemDoc.price);
-                verifiedItems.push({
-                    menuItem: menuItemDoc._id.toString(),
-                    name: menuItemDoc.name,
-                    quantity,
-                    price
-                });
-            } else if (item.price && Number(item.price) > 0) {
-                // Fallback for custom/test items
-                price = Number(item.price);
-                verifiedItems.push({
-                    menuItem: itemId || 'custom',
-                    name: item.name || 'Special Item',
-                    quantity,
-                    price
-                });
-            } else {
-                return res.status(400).json({ message: `Item not found or price invalid: ${item.name || itemId}` });
+            if (!menuItemDoc) {
+                return res.status(400).json({ message: `Item not found on active menu: ${item.name || itemId}` });
             }
+
+            const price = Number(menuItemDoc.price);
+            if (isNaN(price) || price < 0) {
+                return res.status(400).json({ message: `Invalid menu pricing configured for ${menuItemDoc.name}` });
+            }
+
+            verifiedItems.push({
+                menuItem: menuItemDoc._id.toString(),
+                name: menuItemDoc.name,
+                quantity,
+                price
+            });
 
             subtotal += price * quantity;
         }
