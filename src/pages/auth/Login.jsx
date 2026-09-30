@@ -56,8 +56,13 @@ const Login = ({ role: roleProp }) => {
             }
         } catch (err) {
             console.error('Login error:', err);
-            setError(err.response?.data?.message || 'Invalid credentials');
-            toast.error('Login failed');
+            if (!err.response) {
+                setError('Cannot connect to server. The backend may be restarting or offline.');
+                toast.error('Network error: Server unreachable');
+            } else {
+                setError(err.response?.data?.message || 'Invalid credentials');
+                toast.error(err.response?.data?.message || 'Login failed');
+            }
         } finally {
             setIsLoading(false);
         }
