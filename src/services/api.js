@@ -6,8 +6,27 @@ const isHttps = typeof window !== 'undefined' && window.location.protocol === 'h
 const defaultHttpProto = isHttps ? 'https:' : 'http:';
 const HOST = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
 
-const API_URL = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL) || `${defaultHttpProto}//${HOST}:5000/api`;
-const SOCKET_URL = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_SOCKET_URL) || `${defaultHttpProto}//${HOST}:5000`;
+const rawApiUrl = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL) || `${defaultHttpProto}//${HOST}:5000/api`;
+const rawSocketUrl = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_SOCKET_URL) || `${defaultHttpProto}//${HOST}:5000`;
+
+// Ensure SOCKET_URL is only the base origin — Socket.IO treats any path like /api as a namespace and errors with 'Invalid namespace'
+const getCleanSocketUrl = (url) => {
+    try {
+        const parsed = new URL(url);
+        return parsed.origin;
+    } catch {
+        return url.replace(/\/api\/?$/, '').replace(/\/+$/, '');
+    }
+};
+
+// Ensure API_URL ends cleanly with /api
+const getCleanApiUrl = (url) => {
+    const trimmed = (url || '').trim().replace(/\/+$/, '');
+    return trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`;
+};
+
+const API_URL = getCleanApiUrl(rawApiUrl);
+const SOCKET_URL = getCleanSocketUrl(rawSocketUrl);
 
 // Robust Socket.IO config — prevents auto-disconnect on phones / unstable WiFi
 export const socket = io(SOCKET_URL, {
