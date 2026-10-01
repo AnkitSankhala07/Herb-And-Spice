@@ -160,8 +160,18 @@ const getLowStockItems = async (req, res) => {
 
         res.json(result);
     } catch (error) {
-        res.status(500).json({ message: 'Error fetching low stock items', error: error.message });
+// @desc    Seed Inventory & Menu Sample Data
+// @route   POST /api/inventory/seed
+const seedInventory = async (req, res) => {
+    try {
+        const { seedDatabase } = require('../seedSampleData');
+        const stats = await seedDatabase();
+        const items = await Inventory.find({});
+        res.status(200).json({ message: 'Inventory seeded successfully', stats, items });
+    } catch (error) {
+        res.status(500).json({ message: 'Error seeding inventory', error: error.message });
     }
 };
 
-module.exports = { getInventory, updateStock, addInventoryItem, updateInventoryItem, deleteInventoryItem, getLowStockItems };
+module.exports = { getInventory, updateStock, addInventoryItem, updateInventoryItem, deleteInventoryItem, getLowStockItems, seedInventory };
+

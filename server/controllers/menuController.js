@@ -19,66 +19,11 @@ const getMenuItems = async (req, res) => {
 // @route   POST /api/menu/seed
 const seedMenu = async (req, res) => {
     try {
-        await MenuItem.deleteMany({}); // Clear existing
+        const { seedDatabase } = require('../seedSampleData');
+        const stats = await seedDatabase();
 
-        const cheese = await Inventory.findOne({ name: 'Cheese' });
-        const tomato = await Inventory.findOne({ name: 'Tomato' });
-        const bun = await Inventory.findOne({ name: 'Burger Bun' });
-        const patty = await Inventory.findOne({ name: 'Chicken Patty' });
-
-        // If inventory not seeded yet, we can't link
-        if (!cheese || !tomato) {
-            return res.status(400).json({ message: 'Please seed Inventory first!' });
-        }
-
-        const menuItems = [
-            {
-                name: 'Classic Burger',
-                category: 'Burgers',
-                price: 150,
-                imageUrl: 'https://source.unsplash.com/1600x900/?burger',
-                isVeg: false,
-                ingredients: [
-                    { ingredientId: bun._id, quantityRequired: 1 },
-                    { ingredientId: patty ? patty._id : null, quantityRequired: 1 },
-                    { ingredientId: cheese._id, quantityRequired: 0.1 },
-                    { ingredientId: tomato._id, quantityRequired: 0.1 }
-                ].filter(i => i.ingredientId), // Filter out missing ingredients
-                description: 'The classic juicy burger with cheese and fresh veggies.',
-                popularityScore: 95
-            },
-            {
-                name: 'Margherita Pizza',
-                category: 'Pizza',
-                price: 250,
-                imageUrl: 'https://source.unsplash.com/1600x900/?pizza',
-                isVeg: true,
-                ingredients: [
-                    { ingredientId: cheese._id, quantityRequired: 0.2 },
-                    { ingredientId: tomato._id, quantityRequired: 0.2 }
-                ],
-                description: 'Classic cheese and tomato pizza.',
-                popularityScore: 88,
-                isAvailable: true
-            },
-            {
-                name: 'Cheese Fries',
-                category: 'Sides',
-                price: 120,
-                imageUrl: 'https://source.unsplash.com/1600x900/?fries',
-                isVeg: true,
-                ingredients: [
-                    { ingredientId: cheese._id, quantityRequired: 0.1 },
-                    { ingredientId: tomato._id, quantityRequired: 0.05 } // Ketchup/sauce?
-                ],
-                description: 'Crispy fries topped with melted cheese.',
-                popularityScore: 80
-            }
-        ];
-
-        const createdItems = await MenuItem.insertMany(menuItems);
-        res.status(201).json(createdItems);
-
+        const items = await MenuItem.find({}).populate('ingredients.ingredientId');
+        res.status(200).json({ message: 'Menu and inventory seeded successfully', stats, items });
     } catch (error) {
         res.status(500).json({ message: 'Error seeding menu', error: error.message });
         console.error(error);

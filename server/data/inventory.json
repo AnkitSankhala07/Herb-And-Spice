@@ -1,26 +1,40 @@
 [
-    {
-        "name": "Tomato",
-        "quantity": 50,
-        "unit": "kg",
-        "threshold": 5
-    },
-    {
-        "name": "Cheese",
-        "quantity": 20,
-        "unit": "kg",
-        "threshold": 3
-    },
-    {
-        "name": "Burger Bun",
-        "quantity": 100,
-        "unit": "pcs",
-        "threshold": 20
-    },
-    {
-        "name": "Chicken Patty",
-        "quantity": 40,
-        "unit": "pcs",
-        "threshold": 10
-    }
+  { "name": "Burger Bun", "quantity": 120, "unit": "pcs", "threshold": 25 },
+  { "name": "Chicken Breast", "quantity": 85, "unit": "pcs", "threshold": 15 },
+  { "name": "Chicken Patty", "quantity": 60, "unit": "pcs", "threshold": 12 },
+  { "name": "Mutton Patty", "quantity": 45, "unit": "pcs", "threshold": 10 },
+  { "name": "Fish Fillet", "quantity": 50, "unit": "pcs", "threshold": 10 },
+  { "name": "Paneer", "quantity": 35, "unit": "kg", "threshold": 5 },
+  { "name": "Pizza Base (10 inch)", "quantity": 60, "unit": "pcs", "threshold": 15 },
+  { "name": "Artisan Bread", "quantity": 50, "unit": "pcs", "threshold": 12 },
+  { "name": "Naan Bread", "quantity": 40, "unit": "pcs", "threshold": 8 },
+  { "name": "Cheddar Cheese Slice", "quantity": 180, "unit": "pcs", "threshold": 30 },
+  { "name": "Mozzarella Cheese Block", "quantity": 25, "unit": "kg", "threshold": 5 },
+  { "name": "Parmesan Cheese", "quantity": 8, "unit": "kg", "threshold": 2 },
+  { "name": "Fresh Tomato", "quantity": 55, "unit": "kg", "threshold": 10 },
+  { "name": "Red Onion", "quantity": 60, "unit": "kg", "threshold": 12 },
+  { "name": "Crisp Romaine Lettuce", "quantity": 22, "unit": "kg", "threshold": 5 },
+  { "name": "Cucumber", "quantity": 18, "unit": "kg", "threshold": 4 },
+  { "name": "Bell Pepper", "quantity": 20, "unit": "kg", "threshold": 4 },
+  { "name": "Fresh Mushroom", "quantity": 12, "unit": "kg", "threshold": 3 },
+  { "name": "Jalapenos", "quantity": 10, "unit": "kg", "threshold": 2 },
+  { "name": "Russet Potato", "quantity": 120, "unit": "kg", "threshold": 25 },
+  { "name": "Garlic Paste", "quantity": 5, "unit": "kg", "threshold": 1 },
+  { "name": "Butter", "quantity": 15, "unit": "kg", "threshold": 3 },
+  { "name": "Fresh Milk", "quantity": 60, "unit": "liters", "threshold": 12 },
+  { "name": "Fresh Cream", "quantity": 10, "unit": "liters", "threshold": 2 },
+  { "name": "Pizza Sauce", "quantity": 15, "unit": "liters", "threshold": 3 },
+  { "name": "Mayonnaise", "quantity": 10, "unit": "liters", "threshold": 2 },
+  { "name": "BBQ Sauce", "quantity": 8, "unit": "liters", "threshold": 2 },
+  { "name": "Chili Sauce", "quantity": 8, "unit": "liters", "threshold": 2 },
+  { "name": "Arabica Coffee Beans", "quantity": 12, "unit": "kg", "threshold": 2 },
+  { "name": "Assam Tea Leaves", "quantity": 6, "unit": "kg", "threshold": 1 },
+  { "name": "Refined Sugar", "quantity": 30, "unit": "kg", "threshold": 5 },
+  { "name": "Cocoa Powder", "quantity": 5, "unit": "kg", "threshold": 1 },
+  { "name": "Caramel Syrup", "quantity": 6, "unit": "liters", "threshold": 1 },
+  { "name": "Chocolate Syrup", "quantity": 10, "unit": "liters", "threshold": 2 },
+  { "name": "Vanilla Bean Ice Cream", "quantity": 25, "unit": "tubs", "threshold": 5 },
+  { "name": "Fresh Strawberries", "quantity": 10, "unit": "kg", "threshold": 2 },
+  { "name": "Soda Water", "quantity": 80, "unit": "bottles", "threshold": 20 },
+  { "name": "Fresh Mint & Lime", "quantity": 8, "unit": "kg", "threshold": 2 }
 ]

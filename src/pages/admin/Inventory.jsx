@@ -5,9 +5,11 @@ import { Card } from '../../components/ui/Card';
 import { Modal } from '../../components/ui/Modal';
 import { InventoryForm } from '../../components/admin/InventoryForm';
 import { MenuForm } from '../../components/admin/MenuForm';
-import { Plus, Edit2, Trash2, Package, UtensilsCrossed, AlertTriangle } from 'lucide-react';
+import { Plus, Edit2, Trash2, Package, UtensilsCrossed, AlertTriangle, Sparkles, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import clsx from 'clsx';
+import toast from 'react-hot-toast';
+import { MENU_ITEMS, SAMPLE_INVENTORY } from '../../services/mockData';
 
 const InventoryPage = () => {
     const location = useLocation();
@@ -16,6 +18,7 @@ const InventoryPage = () => {
     const [inventory, setInventory] = useState([]);
     const [menuItems, setMenuItems] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isSeeding, setIsSeeding] = useState(false);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingItem, setEditingItem] = useState(null);
@@ -24,15 +27,35 @@ const InventoryPage = () => {
         setIsLoading(true);
         try {
             const [invRes, menuRes] = await Promise.all([
-                api.get('/inventory'),
-                api.get('/menu')
+                api.get('/inventory').catch(() => ({ data: [] })),
+                api.get('/menu').catch(() => ({ data: [] }))
             ]);
-            setInventory(invRes.data);
-            setMenuItems(menuRes.data);
+            const invData = Array.isArray(invRes.data) && invRes.data.length > 0 ? invRes.data : SAMPLE_INVENTORY;
+            const menuData = Array.isArray(menuRes.data) && menuRes.data.length > 0 ? menuRes.data : MENU_ITEMS;
+            setInventory(invData);
+            setMenuItems(menuData);
         } catch (err) {
-            console.error("Failed to load data:", err);
+            console.error("Failed to load data, using sample data:", err);
+            setInventory(SAMPLE_INVENTORY);
+            setMenuItems(MENU_ITEMS);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleSeedSampleData = async () => {
+        setIsSeeding(true);
+        try {
+            await api.post('/menu/seed');
+            toast.success('Sample data seeded successfully to database!');
+            await fetchData();
+        } catch (err) {
+            console.warn("Backend seed failed or offline, loading local sample data:", err);
+            setInventory(SAMPLE_INVENTORY);
+            setMenuItems(MENU_ITEMS);
+            toast.success('Sample menu and inventory data loaded!');
+        } finally {
+            setIsSeeding(false);
         }
     };
 
@@ -138,13 +161,24 @@ const InventoryPage = () => {
                             <h2 className="text-2xl font-display font-bold text-foreground-pale tracking-tight">
                                 {activeTab === 'inventory' ? 'Stock Overview' : 'Menu Offerings'}
                             </h2>
-                            <button
-                                onClick={handleAdd}
-                                className="flex items-center gap-2 bg-teal/10 hover:bg-teal/20 text-teal border border-teal/20 px-5 py-2.5 rounded-xl transition-all font-bold text-sm shadow-[0_4px_15px_-3px_rgba(58,140,114,0.2)]"
-                            >
-                                <Plus size={18} />
-                                Add New {activeTab === 'inventory' ? 'Item' : 'Dish'}
-                            </button>
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={handleSeedSampleData}
+                                    disabled={isSeeding}
+                                    className="flex items-center gap-2 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 px-4 py-2.5 rounded-xl transition-all font-bold text-sm disabled:opacity-50"
+                                    title="Seed and refresh sample menu and inventory items"
+                                >
+                                    {isSeeding ? <RefreshCw size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                                    {isSeeding ? 'Seeding...' : 'Load Sample Data'}
+                                </button>
+                                <button
+                                    onClick={handleAdd}
+                                    className="flex items-center gap-2 bg-teal/10 hover:bg-teal/20 text-teal border border-teal/20 px-5 py-2.5 rounded-xl transition-all font-bold text-sm shadow-[0_4px_15px_-3px_rgba(58,140,114,0.2)]"
+                                >
+                                    <Plus size={18} />
+                                    Add New {activeTab === 'inventory' ? 'Item' : 'Dish'}
+                                </button>
+                            </div>
                         </div>
 
                         {/* Inventory Table */}

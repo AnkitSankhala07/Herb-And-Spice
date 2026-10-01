@@ -1,4 +1,12 @@
 const mongoose = require('mongoose');
+const dns = require('dns');
+
+// Fix SRV resolution issues on Windows with Node.js
+try {
+    dns.setServers(['8.8.8.8', '1.1.1.1']);
+} catch (e) {
+    // Ignore if not permitted
+}
 
 const connectDB = async () => {
     try {
@@ -11,3 +19,4 @@ const connectDB = async () => {
 };
 
 module.exports = connectDB;
+
