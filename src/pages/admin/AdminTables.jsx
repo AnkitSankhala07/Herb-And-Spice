@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Card } from '../../components/ui/Card';
 import { Modal } from '../../components/ui/Modal';
-import { QrCode, Download, Users, Plus, Maximize, Clock, Trash2, Loader2, Save, X, Printer, FileDown, ExternalLink } from 'lucide-react';
+import { QrCode, Download, Users, Plus, Maximize, Clock, Trash2, Loader2, Save, X, Printer, FileDown, ExternalLink, Copy } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import clsx from 'clsx';
 import { Button } from '../../components/ui/Button';
@@ -408,6 +408,16 @@ const AdminTables = () => {
                         <div className="bg-elevated rounded-xl p-3 border border-border flex items-center gap-3">
                             <ExternalLink size={14} className="text-muted shrink-0" />
                             <span className="text-xs text-muted font-mono truncate flex-1">{qrData.url}</span>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    navigator.clipboard.writeText(qrData.url);
+                                    toast.success('Menu URL copied!');
+                                }}
+                                className="text-xs text-primary hover:text-primary/80 font-medium flex items-center gap-1 shrink-0 px-2 py-1 rounded bg-primary/10 transition-colors"
+                            >
+                                <Copy size={12} /> Copy
+                            </button>
                         </div>
 
                         {/* Action Buttons */}

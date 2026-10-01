@@ -9,10 +9,10 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 // so QR codes are always scannable by phones on the same network
 const getLocalNetworkIP = () => {
     const interfaces = os.networkInterfaces();
+    // Prioritize active Wi-Fi or Ethernet IPv4
     for (const name of Object.keys(interfaces)) {
         for (const iface of interfaces[name]) {
-            // Skip loopback & IPv6, pick the first real IPv4 address
-            if (iface.family === 'IPv4' && !iface.internal) {
+            if (iface.family === 'IPv4' && !iface.internal && iface.address !== '127.0.0.1') {
                 return iface.address;
             }
         }
@@ -20,13 +20,34 @@ const getLocalNetworkIP = () => {
     return 'localhost'; // absolute fallback
 };
 
-// Build QR-safe frontend URL — prioritizes configured FRONTEND_URL, fallback to local network IP
-const getFrontendUrl = () => {
-    if (process.env.FRONTEND_URL) {
+// Build QR-safe frontend URL — prioritizes public/non-localhost FRONTEND_URL, fallback to local network IP
+const getFrontendUrl = (req) => {
+    // 1. If FRONTEND_URL is explicitly set and is NOT localhost/127.0.0.1, use it
+    if (process.env.FRONTEND_URL && 
+        !process.env.FRONTEND_URL.includes('localhost') && 
+        !process.env.FRONTEND_URL.includes('127.0.0.1')) {
         return process.env.FRONTEND_URL.replace(/\/+$/, '');
     }
+
+    // 2. Detect frontend port from origin or referer (e.g., 5173, 5174)
+    let frontendPort = '5173';
+    if (req) {
+        const originHeader = req.headers.origin || req.headers.referer;
+        if (originHeader) {
+            try {
+                const parsed = new URL(originHeader);
+                if (parsed.port) frontendPort = parsed.port;
+                // If accessed via actual IP or domain, use that exact origin
+                if (parsed.hostname !== 'localhost' && parsed.hostname !== '127.0.0.1') {
+                    return `${parsed.protocol}//${parsed.hostname}${parsed.port ? `:${parsed.port}` : ''}`;
+                }
+            } catch (e) {}
+        }
+    }
+
+    // 3. Fallback to machine's active local network IPv4 address
     const ip = getLocalNetworkIP();
-    return `http://${ip}:5173`;
+    return `http://${ip}:${frontendPort}`;
 };
 
 // QR Code styling — dark green on parchment to match AKXTON brand
@@ -51,7 +72,7 @@ const generateSingleQR = async (req, res) => {
             return res.status(404).json({ message: 'Table not found' });
         }
 
-        const frontendUrl = getFrontendUrl();
+        const frontendUrl = getFrontendUrl(req);
         const url = `${frontendUrl}/table/${tableId}/menu`;
         const qrImage = await QRCode.toDataURL(url, QR_OPTIONS);
 
@@ -71,10 +92,11 @@ const generateSingleQR = async (req, res) => {
 const generateAllQRs = async (req, res) => {
     try {
         const tables = await Table.find({ isActive: true }).sort({ tableId: 1 });
+        const frontendUrl = getFrontendUrl(req);
 
         const qrCodes = await Promise.all(
             tables.map(async (table) => {
-                const url = `${getFrontendUrl()}/table/${table.tableId}/menu`;
+                const url = `${frontendUrl}/table/${table.tableId}/menu`;
                 const qrImage = await QRCode.toDataURL(url, QR_OPTIONS);
                 return {
                     qrImage,
@@ -101,10 +123,12 @@ const downloadQRPdf = async (req, res) => {
             return res.status(404).json({ message: 'No active tables found' });
         }
 
+        const frontendUrl = getFrontendUrl(req);
+
         // Generate QR code buffers for all tables
         const qrData = await Promise.all(
             tables.map(async (table) => {
-                const url = `${getFrontendUrl()}/table/${table.tableId}/menu`;
+                const url = `${frontendUrl}/table/${table.tableId}/menu`;
                 const buffer = await QRCode.toBuffer(url, {
                     ...QR_OPTIONS,
                     type: 'png',
