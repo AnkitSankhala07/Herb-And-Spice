@@ -160,6 +160,10 @@ const getLowStockItems = async (req, res) => {
 
         res.json(result);
     } catch (error) {
+        res.status(500).json({ message: 'Error fetching low stock items', error: error.message });
+    }
+};
+
 // @desc    Seed Inventory & Menu Sample Data
 // @route   POST /api/inventory/seed
 const seedInventory = async (req, res) => {
@@ -174,4 +178,3 @@ const seedInventory = async (req, res) => {
 };
 
 module.exports = { getInventory, updateStock, addInventoryItem, updateInventoryItem, deleteInventoryItem, getLowStockItems, seedInventory };
-
