@@ -20,9 +20,9 @@ export const OfflineBanner = () => {
     if (isOnline) return null;
 
     return (
-        <div className="bg-gray-800 text-white px-4 py-2 text-xs font-bold flex items-center justify-center gap-2 sticky top-0 z-[60]">
-            <WifiOff size={14} />
-            <span>You are offline. Orders will sync when connection returns.</span>
+        <div className="bg-[#222222] text-white px-4 py-2.5 text-xs font-medium flex items-center justify-center gap-2 sticky top-0 z-[60] shadow-md">
+            <WifiOff size={14} className="text-[#BCE2A3]" />
+            <span>Connection offline. Orders will sync when connection returns.</span>
         </div>
     );
 };

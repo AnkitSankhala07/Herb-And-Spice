@@ -53,7 +53,7 @@ const Menu = () => {
     }, [menuItems, searchQuery, activeCategory]);
 
     const chefSelections = useMemo(() => {
-        return menuItems.filter(item => item.isTrending);
+        return menuItems.filter(item => item.isTrending || item.isPopular);
     }, [menuItems]);
 
     // Animation Variants
@@ -62,54 +62,58 @@ const Menu = () => {
         visible: {
             opacity: 1,
             transition: {
-                staggerChildren: 0.08
+                staggerChildren: 0.05
             }
         }
     };
 
     const itemVariants = {
-        hidden: { opacity: 0, y: 20 },
+        hidden: { opacity: 0, y: 15 },
         visible: { opacity: 1, y: 0 }
     };
 
     return (
-        <div className="min-h-screen bg-[#1C2B1A] text-[#F0E8D5] font-['DM_Sans'] pb-32">
-            {/* SECTION 1 — HEADER ROW */}
-            <header className="px-6 pt-8 mb-6 flex items-center justify-between">
-                <div className="flex flex-col gap-1">
-                    <h1 className="font-['Playfair_Display'] font-bold text-4xl text-[#F0E8D5]">
-                        Menu
+        <div className="min-h-screen bg-[#F4F6F0] text-[#222222] font-body pb-32">
+            {/* Header Row */}
+            <header className="pt-2 mb-6 flex items-end justify-between">
+                <div>
+                    <h1 className="font-extrabold text-3xl sm:text-4xl text-[#222222] tracking-tight">
+                        Our Menu
                     </h1>
-                    <div className="flex items-center gap-2">
-                        <div className="font-['Space_Mono'] text-[#C8973F] bg-[#C8973F]/15 border border-[#C8973F]/40 rounded-full px-3 py-1 text-sm">
-                            Table {tableId || '??'}
-                        </div>
-                    </div>
+                    <p className="text-xs text-[#818181] mt-1 font-medium">Crafted with fresh botanical herbs &amp; spices</p>
                 </div>
-                <div className="flex items-center gap-2">
-                    <div className="bg-[#3A8C72] w-2 h-2 rounded-full animate-pulse" />
-                    <span className="text-[#3A8C72] text-xs font-['DM_Sans'] font-bold tracking-tight">Kitchen Live</span>
+                <div className="flex items-center gap-1.5 bg-white border border-[#EBEBEB] px-3 py-1 rounded-full shadow-xs">
+                    <div className="bg-[#5A724A] w-2 h-2 rounded-full animate-pulse" />
+                    <span className="text-[#5A724A] text-[11px] font-bold tracking-tight">Kitchen Active</span>
                 </div>
             </header>
 
-            {/* SECTION 2 — SEARCH BAR */}
-            <div className="px-6 mb-8">
-                <div className="relative group flex items-center bg-[#2C3C2A] border border-[#344530] rounded-xl focus-within:border-[#C8973F]/60 transition-all duration-300">
-                    <div className="pl-4 text-[#5A7A56]">
+            {/* Search Bar - Pill-shaped */}
+            <div className="mb-6">
+                <div className="relative flex items-center bg-white border border-[#EBEBEB] rounded-full shadow-xs focus-within:border-[#5A724A] focus-within:ring-2 focus-within:ring-[#5A724A]/10 transition-all">
+                    <div className="pl-4 text-[#818181]">
                         <Search size={18} />
                     </div>
                     <input 
                         type="text"
-                        placeholder="Search our flavors..."
+                        placeholder="Search dishes, burgers, pizzas..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full h-12 bg-transparent outline-none px-3 font-['DM_Sans'] text-[#F0E8D5] placeholder-[#5A7A56] text-sm"
+                        className="w-full h-11 bg-transparent outline-none px-3 text-[#222222] placeholder:text-[#818181] text-sm"
                     />
+                    {searchQuery && (
+                        <button
+                            onClick={() => setSearchQuery('')}
+                            className="mr-3 text-xs text-[#818181] hover:text-[#222222] bg-[#F8F8F8] px-2 py-0.5 rounded-full"
+                        >
+                            Clear
+                        </button>
+                    )}
                 </div>
             </div>
 
-            {/* SECTION 3 — CATEGORY FILTER PILLS */}
-            <div className="mb-8 pl-6">
+            {/* Category Filter Pills */}
+            <div className="mb-7 -mx-4 px-4">
                 <CategoryFilter 
                     categories={dynamicCategories}
                     activeCategory={activeCategory}
@@ -117,18 +121,21 @@ const Menu = () => {
                 />
             </div>
 
-            {/* SECTION 4 — CHEF'S SELECTION HORIZONTAL SCROLL */}
+            {/* Chef's Selection Horizontal Reel */}
             {!searchQuery && activeCategory === 'All' && chefSelections.length > 0 && (
-                <div className="mb-10 pl-6">
-                    <div className="flex items-center gap-2 mb-3 pr-6">
-                        <Sparkles className="text-[#C8973F] text-sm" />
-                        <h2 className="font-['DM_Sans'] uppercase tracking-widest text-xs text-[#5A7A56]">Chef's Selection</h2>
+                <div className="mb-8 -mx-4 pl-4">
+                    <div className="flex items-center justify-between mb-3 pr-4">
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm">✨</span>
+                            <h2 className="uppercase tracking-wider text-xs font-bold text-[#5A724A]">Featured Highlights</h2>
+                        </div>
+                        <span className="text-[11px] text-[#818181]">Handcrafted</span>
                     </div>
-                    <div className="flex gap-4 overflow-x-auto scrollbar-hide pr-6">
-                        {chefSelections.map(item => (
+                    <div className="flex gap-4 overflow-x-auto scrollbar-hide pr-4 pb-2 snap-x">
+                        {chefSelections.slice(0, 4).map(item => (
                             <motion.div 
                                 key={item._id || item.id}
-                                className="min-w-[280px] w-[280px]"
+                                className="min-w-[260px] w-[260px] snap-center"
                                 initial="hidden"
                                 animate="visible"
                                 variants={itemVariants}
@@ -140,22 +147,24 @@ const Menu = () => {
                 </div>
             )}
 
-            {/* MAIN GRID */}
-            <div className="px-6">
-                <div className="flex items-center gap-2 mb-4">
-                    <h2 className="font-['DM_Sans'] uppercase tracking-widest text-xs text-[#5A7A56]">
-                        {searchQuery ? 'Search Results' : `${activeCategory} Items`}
+            {/* Main Menu Grid */}
+            <div>
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="uppercase tracking-wider text-xs font-bold text-[#818181]">
+                        {searchQuery ? `Results for "${searchQuery}"` : `${activeCategory} Items`}
                     </h2>
+                    <span className="text-xs text-[#818181] font-mono">{filteredItems.length} items</span>
                 </div>
                 
                 {filteredItems.length === 0 ? (
-                    <div className="text-center py-20 bg-[#243023] rounded-3xl border border-dashed border-[#344530]">
-                        <p className="text-[#5A7A56] font-['DM_Sans']">No treats found in this category.</p>
+                    <div className="text-center py-16 bg-white rounded-3xl border border-dashed border-[#EBEBEB]">
+                        <p className="text-3xl mb-2">🌿</p>
+                        <p className="text-[#818181] text-sm font-medium">No dishes found matching your selection.</p>
                     </div>
                 ) : (
                     <motion.div 
                         key={`${activeCategory}-${searchQuery}`}
-                        className="grid grid-cols-2 gap-4"
+                        className="grid grid-cols-2 gap-3.5 sm:gap-4"
                         variants={containerVariants}
                         initial="hidden"
                         animate="visible"
@@ -169,28 +178,28 @@ const Menu = () => {
                 )}
             </div>
 
-            {/* SECTION 5 — FLOATING CART CTA */}
+            {/* Floating Cart CTA - Pill-shaped Charcoal */}
             <AnimatePresence>
                 {totalItems > 0 && (
                     <motion.div 
-                        initial={{ y: 100, x: '-50%' }}
+                        initial={{ y: 80, x: '-50%' }}
                         animate={{ y: 0, x: '-50%' }}
-                        exit={{ y: 100, x: '-50%' }}
-                        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                        exit={{ y: 80, x: '-50%' }}
+                        transition={{ type: 'spring', stiffness: 350, damping: 28 }}
                         className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-sm z-40"
                     >
                         <Link to={`/table/${tableId}/cart`} className="block">
-                            <div className="bg-[#243023]/90 backdrop-blur-xl border border-[#344530] rounded-2xl px-4 py-3 flex items-center justify-between shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
-                                <div className="flex items-center">
-                                    <div className="bg-[#8B5E3C] rounded-xl w-9 h-9 flex items-center justify-center relative">
-                                        <ShoppingBag size={20} className="text-[#FAF6EE]" />
-                                        <div className="absolute top-0 right-0 bg-[#C8973F] text-[#1C2B1A] text-[10px] font-bold rounded-full -mt-1.5 -mr-1.5 w-5 h-5 flex items-center justify-center border-2 border-[#243023]">
+                            <div className="bg-[#222222] text-white rounded-full px-5 py-3.5 flex items-center justify-between shadow-[0_10px_30px_rgba(34,34,34,0.3)] hover:bg-black transition-all">
+                                <div className="flex items-center gap-3">
+                                    <div className="bg-[#5A724A] text-white rounded-full w-9 h-9 flex items-center justify-center relative font-bold">
+                                        <ShoppingBag size={18} />
+                                        <div className="absolute -top-1 -right-1 bg-[#BCE2A3] text-[#222222] text-[10px] font-black rounded-full w-4 h-4 flex items-center justify-center">
                                             {totalItems}
                                         </div>
                                     </div>
-                                    <span className="ml-4 font-['DM_Sans'] font-medium text-[#F0E8D5] text-sm">View Cart</span>
+                                    <span className="font-semibold text-sm tracking-wide">Review Order</span>
                                 </div>
-                                <div className="font-['Space_Mono'] text-[#C8973F] font-bold text-base">
+                                <div className="font-mono font-bold text-base text-[#BCE2A3]">
                                     ₹{total.toFixed(2)}
                                 </div>
                             </div>
@@ -199,15 +208,16 @@ const Menu = () => {
                 )}
             </AnimatePresence>
 
-            {/* SECTION 6 — AI CHATBOT FAB */}
+            {/* AI Assistant FAB Button */}
             <motion.button 
-                whileHover={{ scale: 1.1 }}
+                whileHover={{ scale: 1.08 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setShowAIChat(true)}
-                className="fixed bottom-6 right-4 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-[#8B5E3C] to-[#3D1A0A] shadow-[0_4px_20px_rgba(139,94,60,0.5)] flex items-center justify-center group"
+                className="fixed bottom-6 right-4 z-50 w-13 h-13 rounded-full bg-[#5A724A] text-white shadow-[0_6px_24px_rgba(90,114,74,0.35)] flex items-center justify-center group"
+                aria-label="Open AI Culinary Concierge"
             >
-                <div className="absolute inset-0 rounded-full border-2 border-[#8B5E3C]/40 animate-ping pointer-events-none" />
-                <span className="text-2xl transform group-hover:rotate-12 transition-transform">🌿</span>
+                <div className="absolute inset-0 rounded-full border-2 border-[#BCE2A3] animate-ping opacity-40 pointer-events-none" />
+                <span className="text-xl transform group-hover:rotate-12 transition-transform">🌿</span>
             </motion.button>
 
             {/* AI Panel Component */}

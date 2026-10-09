@@ -23,22 +23,22 @@ export const InventoryForm = ({ initialData, onSave, onCancel }) => {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-5 p-2">
+        <form onSubmit={handleSubmit} className="space-y-5 p-1">
             <div>
-                <label className="block text-sm font-bold text-muted mb-2 uppercase tracking-wide">Item Name</label>
+                <label className="block text-xs font-bold text-[#818181] mb-2 uppercase tracking-wider">Item Name</label>
                 <input
                     type="text"
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className="w-full bg-surface border border-border rounded-xl p-3 text-foreground-pale focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all font-medium"
+                    className="w-full bg-[#F8F8F8] border border-[#EBEBEB] rounded-2xl p-3.5 text-[#222222] focus:outline-none focus:border-[#5A724A] focus:ring-2 focus:ring-[#5A724A]/10 transition-all font-medium text-sm"
                 />
             </div>
 
-            <div className="grid grid-cols-2 gap-5">
+            <div className="grid grid-cols-2 gap-4">
                 <div>
-                    <label className="block text-sm font-bold text-muted mb-2 uppercase tracking-wide">Quantity</label>
+                    <label className="block text-xs font-bold text-[#818181] mb-2 uppercase tracking-wider">Quantity</label>
                     <input
                         type="number"
                         name="quantity"
@@ -47,27 +47,27 @@ export const InventoryForm = ({ initialData, onSave, onCancel }) => {
                         required
                         min="0"
                         step="0.1"
-                        className="w-full bg-surface border border-border rounded-xl p-3 text-foreground-pale focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all font-mono"
+                        className="w-full bg-[#F8F8F8] border border-[#EBEBEB] rounded-2xl p-3.5 text-[#222222] focus:outline-none focus:border-[#5A724A] focus:ring-2 focus:ring-[#5A724A]/10 transition-all font-mono text-sm"
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-bold text-muted mb-2 uppercase tracking-wide">Unit</label>
+                    <label className="block text-xs font-bold text-[#818181] mb-2 uppercase tracking-wider">Unit</label>
                     <input
                         type="text"
                         name="unit"
                         value={formData.unit}
                         onChange={handleChange}
                         required
-                        className="w-full bg-surface border border-border rounded-xl p-3 text-foreground-pale focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all"
+                        className="w-full bg-[#F8F8F8] border border-[#EBEBEB] rounded-2xl p-3.5 text-[#222222] focus:outline-none focus:border-[#5A724A] focus:ring-2 focus:ring-[#5A724A]/10 transition-all text-sm"
                         placeholder="kg, pcs, liters"
                     />
                 </div>
             </div>
 
             <div>
-                <label className="block text-sm font-bold text-muted mb-2 uppercase tracking-wide flex items-center gap-2">
+                <label className="block text-xs font-bold text-[#818181] mb-2 uppercase tracking-wider flex items-center gap-2">
                     Low Stock Threshold
-                    <span className="text-xs font-normal text-amber lowercase bg-amber/10 px-2 py-0.5 rounded border border-amber/20">trigger alert</span>
+                    <span className="text-[10px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">Alert trigger</span>
                 </label>
                 <input
                     type="number"
@@ -76,15 +76,15 @@ export const InventoryForm = ({ initialData, onSave, onCancel }) => {
                     onChange={handleChange}
                     required
                     min="0"
-                    className="w-full bg-surface border border-border rounded-xl p-3 text-foreground-pale focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all font-mono"
+                    className="w-full bg-[#F8F8F8] border border-[#EBEBEB] rounded-2xl p-3.5 text-[#222222] focus:outline-none focus:border-[#5A724A] focus:ring-2 focus:ring-[#5A724A]/10 transition-all font-mono text-sm"
                 />
             </div>
 
-            <div className="flex gap-3 justify-end pt-6 mb-2 border-t border-border mt-4">
-                <Button type="button" variant="outline" onClick={onCancel} className="bg-transparent border border-border text-muted hover:text-foreground-pale hover:bg-surface font-bold">
+            <div className="flex gap-3 justify-end pt-5 border-t border-[#EBEBEB] mt-6">
+                <Button type="button" variant="outline" onClick={onCancel}>
                     Cancel
                 </Button>
-                <Button type="submit" className="bg-primary hover:bg-primary/90 text-background font-bold shadow-lg shadow-primary/20">
+                <Button type="submit" variant="primary">
                     Save Item
                 </Button>
             </div>

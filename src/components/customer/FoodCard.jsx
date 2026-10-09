@@ -1,5 +1,5 @@
 import { useCart } from '../../context/CartContext';
-import { Plus, Minus, Star, Flame } from 'lucide-react';
+import { Plus, Minus, Star, Flame, Sparkles } from 'lucide-react';
 import clsx from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -32,41 +32,44 @@ export const FoodCard = ({ item, onClick }) => {
         <div
             onClick={onClick}
             className={clsx(
-                "flex flex-col h-full bg-white rounded-3xl overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.06)] border border-gray-100 cursor-pointer transition-transform hover:scale-[1.02]",
-                !item.isAvailable && "opacity-70 grayscale"
+                "group flex flex-col h-full bg-white rounded-3xl overflow-hidden shadow-[0_4px_20px_rgba(90,114,74,0.05)] hover:shadow-[0_12px_32px_rgba(90,114,74,0.12)] border border-[#EBEBEB] cursor-pointer transition-all duration-300 hover:-translate-y-1",
+                !item.isAvailable && "opacity-60 grayscale"
             )}
         >
             {/* Image Box */}
-            <div className="relative aspect-[4/3] w-full bg-gray-100 shrink-0">
+            <div className="relative aspect-[4/3] w-full bg-[#F4F6F0] overflow-hidden shrink-0">
                 <img
-                    src={item.image || item.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name)}&background=FF6B6B&color=fff&size=400`}
+                    src={item.image || item.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name)}&background=5A724A&color=fff&size=400`}
                     alt={item.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    loading="lazy"
                 />
 
                 {/* Top Left Badge */}
                 {item.isPopular && !item.isTrending && (
-                    <div className="absolute top-0 left-0 bg-orange-500 text-white text-[10px] font-bold px-3 py-1.5 rounded-br-2xl flex items-center gap-1 shadow-md">
-                        <Star size={12} fill="currentColor" /> POPULAR
+                    <div className="absolute top-2.5 left-2.5 bg-[#BCE2A3] text-[#222222] text-[10px] font-bold px-3 py-1 rounded-full flex items-center gap-1 shadow-sm tracking-wide">
+                        <Star size={11} fill="currentColor" /> POPULAR
                     </div>
                 )}
                 {item.isTrending && (
-                    <div className="absolute top-0 left-0 bg-[#FF6B6B] text-white text-[10px] font-bold px-3 py-1.5 rounded-br-2xl flex items-center gap-1 shadow-md">
-                        <Flame size={12} fill="currentColor" /> TRENDING
+                    <div className="absolute top-2.5 left-2.5 bg-[#5A724A] text-white text-[10px] font-bold px-3 py-1 rounded-full flex items-center gap-1 shadow-sm tracking-wide">
+                        <Flame size={11} fill="currentColor" /> TRENDING
                     </div>
                 )}
 
-                {/* Top Right Badge */}
+                {/* Top Right Dietary Badge */}
                 <div className={clsx(
-                    "absolute top-2 right-2 text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-sm tracking-widest",
-                    item.isVeg ? "bg-[#10B981] text-white" : "bg-[#FF6B6B] text-white"
+                    "absolute top-2.5 right-2.5 text-[9px] font-bold px-2.5 py-0.5 rounded-full shadow-sm tracking-wider uppercase border",
+                    item.isVeg
+                        ? "bg-white/95 text-[#5A724A] border-[#BCE2A3]"
+                        : "bg-white/95 text-[#B84E3A] border-[#F2C2B8]"
                 )}>
                     {item.isVeg ? "VEG" : "NON-VEG"}
                 </div>
 
                 {!item.isAvailable && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-10">
-                        <span className="bg-white text-gray-900 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-xl">
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-xs z-10">
+                        <span className="bg-white text-[#222222] px-3.5 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-lg">
                             Sold Out
                         </span>
                     </div>
@@ -74,26 +77,27 @@ export const FoodCard = ({ item, onClick }) => {
             </div>
 
             {/* Content */}
-            <div className="p-3 sm:p-4 flex flex-col flex-1 bg-white">
-                <div className="flex justify-between items-start mb-2 gap-2">
-                    <h3 className="font-bold text-gray-900 text-base sm:text-lg leading-tight line-clamp-2">
+            <div className="p-4 flex flex-col flex-1 bg-white">
+                <div className="flex justify-between items-start mb-1.5 gap-2">
+                    <h3 className="font-bold text-[#222222] text-sm sm:text-base leading-snug line-clamp-2 group-hover:text-[#5A724A] transition-colors">
                         {item.name}
                     </h3>
-                    <span className="font-bold text-[#FF6B6B] text-base sm:text-lg whitespace-nowrap">
+                    <span className="font-bold text-[#5A724A] text-base sm:text-lg whitespace-nowrap">
                         <span className="text-xs">₹</span>{item.price}
                     </span>
                 </div>
 
-                <div className="flex items-center text-[10px] sm:text-xs text-gray-400 mb-2 gap-1.5 font-medium">
-                    <span>{item.calories || "500"} cal</span>
+                <div className="flex items-center text-[10px] sm:text-xs text-[#818181] mb-2 gap-1.5 font-medium">
+                    <span>{item.calories || "480"} cal</span>
                     <span>•</span>
-                    <span>~{item.preparationTime || "15"} min prep</span>
+                    <span>~{item.preparationTime || item.prepTime || "15"} min</span>
                 </div>
 
-                <p className="text-[11px] sm:text-sm text-gray-500 line-clamp-2 mb-4 flex-1">
-                    {item.description || "Incredibly delicious."}
+                <p className="text-[11px] sm:text-xs text-[#818181] line-clamp-2 mb-4 flex-1 leading-relaxed">
+                    {item.description || "Fresh artisan ingredients and herbs."}
                 </p>
 
+                {/* Action Button: Pill-shaped dark charcoal or stepper */}
                 <div className="mt-auto h-10 w-full shrink-0" onClick={(e) => e.stopPropagation()}>
                     <AnimatePresence mode="popLayout" initial={false}>
                         {quantity === 0 ? (
@@ -104,9 +108,9 @@ export const FoodCard = ({ item, onClick }) => {
                                 exit={{ opacity: 0 }}
                                 onClick={handlePlus}
                                 disabled={!item.isAvailable}
-                                className="w-full h-full bg-[#FF6B6B] hover:bg-red-500 text-white font-bold rounded-xl flex items-center justify-center gap-1 transition-colors text-sm shadow-md shadow-[#FF6B6B]/30"
+                                className="w-full h-full bg-[#222222] hover:bg-[#5A724A] text-white font-semibold rounded-full flex items-center justify-center gap-1.5 transition-colors text-xs tracking-wide shadow-sm"
                             >
-                                <Plus size={16} strokeWidth={3} /> Add
+                                <Plus size={14} strokeWidth={2.5} /> Add to Order
                             </motion.button>
                         ) : (
                             <motion.div
@@ -114,14 +118,22 @@ export const FoodCard = ({ item, onClick }) => {
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
-                                className="w-full h-full flex items-center justify-between bg-red-50 border border-red-100 rounded-xl px-2 shadow-sm"
+                                className="w-full h-full flex items-center justify-between bg-[#F4F6F0] border border-[#BCE2A3] rounded-full px-1.5 shadow-xs"
                             >
-                                <button onClick={handleMinus} className="w-7 h-7 flex items-center justify-center text-[#FF6B6B] bg-white rounded-lg shadow-sm border border-red-100">
-                                    <Minus size={16} strokeWidth={3} />
+                                <button
+                                    onClick={handleMinus}
+                                    className="w-7 h-7 flex items-center justify-center text-[#5A724A] bg-white rounded-full shadow-xs hover:bg-[#5A724A] hover:text-white transition-colors"
+                                    aria-label="Decrease quantity"
+                                >
+                                    <Minus size={14} strokeWidth={2.5} />
                                 </button>
-                                <span className="font-bold text-gray-900 text-base">{quantity}</span>
-                                <button onClick={handlePlus} className="w-7 h-7 flex items-center justify-center bg-[#FF6B6B] text-white rounded-lg shadow-sm">
-                                    <Plus size={16} strokeWidth={3} />
+                                <span className="font-bold text-[#222222] text-sm px-2">{quantity}</span>
+                                <button
+                                    onClick={handlePlus}
+                                    className="w-7 h-7 flex items-center justify-center bg-[#5A724A] text-white rounded-full shadow-xs hover:bg-[#485D3B] transition-colors"
+                                    aria-label="Increase quantity"
+                                >
+                                    <Plus size={14} strokeWidth={2.5} />
                                 </button>
                             </motion.div>
                         )}

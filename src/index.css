@@ -1,35 +1,45 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600;1,700&family=Space+Mono:wght@400;700&display=swap');
 
 @theme {
-  --font-display: 'Playfair Display', Georgia, serif;
-  --font-body: 'DM Sans', sans-serif;
+  --font-display: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-body: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   --font-mono: 'Space Mono', monospace;
 
-  --color-background: #1C2B1A;
-  --color-surface: #243023;
-  --color-elevated: #2C3C2A;
-  --color-border: #344530;
-  --color-primary: #8B5E3C;
-  --color-primary-hover: #A8744E;
-  --color-foreground: #F0E8D5;
-  --color-muted: #5A7A56;
-  --color-gold: #C8973F;
-  --color-teal: #3A8C72;
-  --color-amber: #D4892A;
-  --color-danger: #C44B3A;
-  --color-desktop-bg: #111A10;
+  /* Herb & Spice Design System */
+  --color-primary: #5A724A;
+  --color-primary-hover: #485D3B;
+  --color-primary-light: #708C5D;
+  --color-secondary: #BCE2A3;
+  --color-secondary-hover: #AADB8E;
+  
+  --color-background: #F4F6F0;
+  --color-desktop-bg: #EDF1E8;
+  --color-surface: #F8F8F8;
+  --color-elevated: #FFFFFF;
+  --color-border: #EBEBEB;
+  --color-border-subtle: #F0F0F0;
+  
+  --color-foreground: #222222;
+  --color-foreground-pale: #222222;
+  --color-muted: #818181;
+  --color-muted-foreground: #818181;
+  --color-charcoal: #222222;
+  
+  --color-gold: #5A724A;
+  --color-teal: #4F7049;
+  --color-amber: #D9822B;
+  --color-danger: #D94A38;
 
   /* Animation Utilities */
-  --animate-in: fade-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  --animate-in-delayed: fade-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+  --animate-in: fade-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-in-delayed: fade-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.15s forwards;
 
   @keyframes fade-in {
     0% {
       opacity: 0;
-      transform: translateY(10px);
+      transform: translateY(8px);
     }
-
     100% {
       opacity: 1;
       transform: translateY(0);
@@ -39,7 +49,7 @@
 
 @layer base {
   :root {
-    color-scheme: dark;
+    color-scheme: light;
   }
 
   body {
@@ -59,13 +69,15 @@
   h6 {
     font-family: var(--font-display);
     font-weight: 700;
-    line-height: 1.2;
-    color: #FAF6EE;
+    line-height: 1.25;
+    color: #222222;
+    letter-spacing: -0.02em;
   }
 
   /* Custom Scrollbar */
   ::-webkit-scrollbar {
     width: 6px;
+    height: 6px;
   }
 
   ::-webkit-scrollbar-track {
@@ -73,18 +85,18 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background-color: var(--color-border);
+    background-color: #D6DED0;
     border-radius: 9999px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background-color: var(--color-muted);
+    background-color: #5A724A;
   }
 
   /* Selection */
   ::selection {
-    background-color: var(--color-primary);
-    color: white;
+    background-color: #BCE2A3;
+    color: #222222;
   }
 }
 
@@ -94,8 +106,43 @@
   }
 
   .glass {
-    background: rgba(36, 48, 35, 0.7);
-    backdrop-filter: blur(12px);
+    background: rgba(248, 248, 248, 0.82);
+    backdrop-filter: blur(16px);
     border: 1px solid var(--color-border);
+  }
+
+  .glass-card {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(235, 235, 235, 0.9);
+    box-shadow: 0 10px 30px -5px rgba(90, 114, 74, 0.05);
+  }
+
+  .sage-gradient {
+    background: linear-gradient(135deg, #5A724A 0%, #445936 100%);
+  }
+
+  .sage-soft-gradient {
+    background: linear-gradient(135deg, #F4F6F0 0%, #E9EFE4 100%);
+  }
+
+  .light-green-gradient {
+    background: linear-gradient(135deg, #BCE2A3 0%, #A4D486 100%);
+  }
+
+  .organic-blob-1 {
+    border-radius: 60% 40% 70% 30% / 50% 60% 40% 50%;
+  }
+
+  .organic-blob-2 {
+    border-radius: 40% 60% 35% 65% / 60% 35% 65% 40%;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }

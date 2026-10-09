@@ -13,7 +13,7 @@ import { MENU_ITEMS, SAMPLE_INVENTORY } from '../../services/mockData';
 
 const InventoryPage = () => {
     const location = useLocation();
-    const [activeTab, setActiveTab] = useState(location.pathname.includes('menu') ? 'menu' : 'inventory'); // 'inventory' | 'menu'
+    const [activeTab, setActiveTab] = useState(location.pathname.includes('menu') ? 'menu' : 'inventory');
 
     const [inventory, setInventory] = useState([]);
     const [menuItems, setMenuItems] = useState([]);
@@ -112,33 +112,33 @@ const InventoryPage = () => {
     };
 
     return (
-        <div className="p-4 md:p-6 lg:p-8 max-w-[1600px] mx-auto min-h-screen text-foreground space-y-8">
+        <div className="p-2 md:p-4 max-w-[1600px] mx-auto min-h-screen text-[#222222] space-y-6">
             {/* Header Area */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl lg:text-4xl font-display font-bold text-foreground-pale mb-1 tracking-tight">System Catalog</h1>
-                    <p className="text-muted text-sm tracking-wide">Manage inventory logistics and menu offerings.</p>
+                    <h1 className="text-3xl font-extrabold text-[#222222] tracking-tight">Catalog Management</h1>
+                    <p className="text-[#818181] text-xs mt-1">Manage kitchen ingredients and artisan menu offerings.</p>
                 </div>
-                <div className="flex bg-elevated p-1 rounded-xl border border-border shadow-inner self-start md:self-auto">
+                <div className="flex bg-white p-1 rounded-full border border-[#EBEBEB] shadow-xs self-start md:self-auto">
                     <button
                         onClick={() => setActiveTab('inventory')}
                         className={clsx(
-                            "flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold transition-all",
-                            activeTab === 'inventory' ? "bg-primary text-background shadow-[0_4px_15px_-3px_rgba(139,94,60,0.4)]" : "text-muted hover:text-foreground-pale hover:bg-surface"
+                            "flex items-center gap-2 px-5 py-2 rounded-full text-xs font-bold transition-all",
+                            activeTab === 'inventory' ? "bg-[#5A724A] text-white shadow-xs" : "text-[#818181] hover:text-[#222222]"
                         )}
                     >
-                        <Package size={18} />
+                        <Package size={16} />
                         Inventory
                     </button>
                     <button
                         onClick={() => setActiveTab('menu')}
                         className={clsx(
-                            "flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold transition-all",
-                            activeTab === 'menu' ? "bg-primary text-background shadow-[0_4px_15px_-3px_rgba(139,94,60,0.4)]" : "text-muted hover:text-foreground-pale hover:bg-surface"
+                            "flex items-center gap-2 px-5 py-2 rounded-full text-xs font-bold transition-all",
+                            activeTab === 'menu' ? "bg-[#5A724A] text-white shadow-xs" : "text-[#818181] hover:text-[#222222]"
                         )}
                     >
-                        <UtensilsCrossed size={18} />
-                        Menu Data
+                        <UtensilsCrossed size={16} />
+                        Menu Dishes
                     </button>
                 </div>
             </div>
@@ -152,30 +152,26 @@ const InventoryPage = () => {
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.2 }}
                 >
-                    <Card className="bg-surface border-border p-6 md:p-8 min-h-[500px] shadow-xl relative overflow-hidden">
-                        {/* Subtle background glow */}
-                        <div className="absolute -top-40 -right-40 w-96 h-96 bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
-
+                    <Card className="bg-white border border-[#EBEBEB] p-6 md:p-8 min-h-[500px] shadow-[0_4px_24px_rgba(90,114,74,0.06)] rounded-3xl">
                         {/* Action Bar */}
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 relative z-10">
-                            <h2 className="text-2xl font-display font-bold text-foreground-pale tracking-tight">
-                                {activeTab === 'inventory' ? 'Stock Overview' : 'Menu Offerings'}
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                            <h2 className="text-xl font-bold text-[#222222]">
+                                {activeTab === 'inventory' ? 'Kitchen Stock Overview' : 'Menu Dish Catalog'}
                             </h2>
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2.5">
                                 <button
                                     onClick={handleSeedSampleData}
                                     disabled={isSeeding}
-                                    className="flex items-center gap-2 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 px-4 py-2.5 rounded-xl transition-all font-bold text-sm disabled:opacity-50"
-                                    title="Seed and refresh sample menu and inventory items"
+                                    className="flex items-center gap-1.5 bg-[#F8F8F8] hover:bg-[#EBEBEB] text-[#222222] border border-[#EBEBEB] px-4 py-2 rounded-full transition-all font-semibold text-xs disabled:opacity-50"
                                 >
-                                    {isSeeding ? <RefreshCw size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                                    {isSeeding ? <RefreshCw size={14} className="animate-spin" /> : <Sparkles size={14} className="text-[#5A724A]" />}
                                     {isSeeding ? 'Seeding...' : 'Load Sample Data'}
                                 </button>
                                 <button
                                     onClick={handleAdd}
-                                    className="flex items-center gap-2 bg-teal/10 hover:bg-teal/20 text-teal border border-teal/20 px-5 py-2.5 rounded-xl transition-all font-bold text-sm shadow-[0_4px_15px_-3px_rgba(58,140,114,0.2)]"
+                                    className="flex items-center gap-1.5 bg-[#5A724A] hover:bg-[#485D3B] text-white px-5 py-2 rounded-full transition-all font-bold text-xs shadow-xs"
                                 >
-                                    <Plus size={18} />
+                                    <Plus size={16} />
                                     Add New {activeTab === 'inventory' ? 'Item' : 'Dish'}
                                 </button>
                             </div>
@@ -183,9 +179,9 @@ const InventoryPage = () => {
 
                         {/* Inventory Table */}
                         {activeTab === 'inventory' && (
-                            <div className="overflow-x-auto rounded-xl border border-border bg-elevated shadow-inner relative z-10">
+                            <div className="overflow-x-auto rounded-2xl border border-[#EBEBEB] bg-white">
                                 <table className="w-full text-left">
-                                    <thead className="bg-surface text-xs text-muted uppercase tracking-widest font-bold border-b border-border">
+                                    <thead className="bg-[#F8F8F8] text-[11px] text-[#818181] uppercase tracking-wider font-bold border-b border-[#EBEBEB]">
                                         <tr>
                                             <th className="p-4 pl-6">Item Name</th>
                                             <th className="p-4">Stock Level</th>
@@ -193,91 +189,105 @@ const InventoryPage = () => {
                                             <th className="p-4 text-right pr-6">Actions</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-border">
+                                    <tbody className="divide-y divide-[#EBEBEB]">
                                         {inventory.map((item) => {
                                             const isCritical = item.quantity < item.threshold;
                                             const isLow = item.quantity < item.threshold * 2;
                                             return (
-                                                <tr key={item._id} className="hover:bg-surface/50 transition-colors group">
-                                                    <td className="p-4 pl-6 font-medium text-foreground-pale">{item.name}</td>
-                                                    <td className="p-4 font-mono font-bold text-gold">
-                                                        {item.quantity} <span className="text-muted text-xs font-sans tracking-wide ml-1">{item.unit}</span>
+                                                <tr key={item._id} className="hover:bg-[#F8F8F8]/60 transition-colors group">
+                                                    <td className="p-4 pl-6 font-semibold text-sm text-[#222222]">{item.name}</td>
+                                                    <td className="p-4 font-mono font-bold text-sm text-[#5A724A]">
+                                                        {item.quantity} <span className="text-[#818181] text-xs font-sans tracking-wide ml-1">{item.unit}</span>
                                                     </td>
                                                     <td className="p-4">
                                                         <span className={clsx(
-                                                            "px-3 py-1 rounded border text-[10px] font-bold uppercase tracking-widest inline-flex items-center gap-1",
-                                                            isCritical ? "bg-danger/10 text-danger border-danger/20" :
-                                                                isLow ? "bg-amber/10 text-amber border-amber/20" :
-                                                                    "bg-teal/10 text-teal border-teal/20"
+                                                            "px-3 py-0.5 rounded-full border text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1",
+                                                            isCritical ? "bg-red-50 text-red-700 border-red-200" :
+                                                                isLow ? "bg-amber-50 text-amber-700 border-amber-200" :
+                                                                    "bg-[#BCE2A3]/30 text-[#425934] border-[#BCE2A3]"
                                                         )}>
                                                             {isCritical && <AlertTriangle size={10} />}
                                                             {isCritical ? 'Critical' : isLow ? 'Low' : 'Healthy'}
                                                         </span>
                                                     </td>
-                                                    <td className="p-4 pr-6 text-right flex justify-end gap-2 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        <button onClick={() => handleEdit(item)} className="p-2 hover:bg-elevated border border-transparent hover:border-border rounded-lg text-muted hover:text-primary transition-all" title="Edit">
-                                                            <Edit2 size={16} />
+                                                    <td className="p-4 pr-6 text-right flex justify-end gap-2">
+                                                        <button
+                                                            onClick={() => handleEdit(item)}
+                                                            className="w-8 h-8 rounded-full bg-[#F8F8F8] border border-[#EBEBEB] hover:border-[#5A724A] hover:text-[#5A724A] text-[#818181] flex items-center justify-center transition-all shadow-2xs"
+                                                            title="Edit"
+                                                        >
+                                                            <Edit2 size={14} />
                                                         </button>
-                                                        <button onClick={() => handleDelete(item._id)} className="p-2 hover:bg-danger/10 border border-transparent hover:border-danger/20 rounded-lg text-muted hover:text-danger transition-all" title="Delete">
-                                                            <Trash2 size={16} />
+                                                        <button
+                                                            onClick={() => handleDelete(item._id)}
+                                                            className="w-8 h-8 rounded-full bg-red-50 border border-red-200 hover:bg-red-100 text-red-600 flex items-center justify-center transition-all shadow-2xs"
+                                                            title="Delete"
+                                                        >
+                                                            <Trash2 size={14} />
                                                         </button>
                                                     </td>
                                                 </tr>
                                             );
                                         })}
                                         {inventory.length === 0 && !isLoading && (
-                                            <tr><td colSpan="4" className="p-12 text-center text-muted border-0">No inventory items strictly tracked.</td></tr>
+                                            <tr><td colSpan="4" className="p-12 text-center text-[#818181] border-0 text-xs">No inventory items recorded yet.</td></tr>
                                         )}
                                     </tbody>
                                 </table>
                             </div>
                         )}
 
-                        {/* Menu Table */}
+                        {/* Menu Grid */}
                         {activeTab === 'menu' && (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                                 {menuItems.map((item) => (
-                                    <div key={item._id} className="group relative bg-elevated border border-border rounded-2xl overflow-hidden hover:border-primary/50 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5">
-                                        <div className="aspect-video relative overflow-hidden bg-surface">
-                                            <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-90" />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-surface via-surface/40 to-transparent flex items-end p-5">
+                                    <div key={item._id} className="group relative bg-white border border-[#EBEBEB] rounded-3xl overflow-hidden hover:border-[#5A724A] transition-all duration-300 shadow-[0_4px_16px_rgba(90,114,74,0.04)] hover:shadow-[0_12px_28px_rgba(90,114,74,0.1)]">
+                                        <div className="aspect-video relative overflow-hidden bg-[#F4F6F0]">
+                                            <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-4">
                                                 <div>
-                                                    <h3 className="text-lg font-display font-bold text-foreground-pale leading-tight mb-1">{item.name}</h3>
-                                                    <p className="text-gold font-mono font-bold text-sm tracking-tight">₹{item.price}</p>
+                                                    <h3 className="text-base font-bold text-white leading-tight mb-0.5">{item.name}</h3>
+                                                    <p className="text-[#BCE2A3] font-mono font-bold text-sm tracking-tight">₹{item.price}</p>
                                                 </div>
                                             </div>
-                                            <div className="absolute top-3 right-3 flex gap-1">
+                                            <div className="absolute top-2.5 right-2.5 flex gap-1">
                                                 <span className={clsx(
-                                                    "px-3 py-1 rounded backdrop-blur-md text-[10px] font-bold uppercase tracking-widest border",
-                                                    item.isAvailable ? "bg-teal/20 text-teal border-teal/30" : "bg-danger/20 text-danger border-danger/30"
+                                                    "px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider border shadow-xs",
+                                                    item.isAvailable ? "bg-white/95 text-[#5A724A] border-[#BCE2A3]" : "bg-white/95 text-red-600 border-red-200"
                                                 )}>
-                                                    {item.isAvailable ? 'Active' : 'Disabled'}
+                                                    {item.isAvailable ? 'Available' : 'Disabled'}
                                                 </span>
                                             </div>
                                         </div>
-                                        <div className="p-5">
-                                            <div className="flex justify-between items-center text-xs text-muted mb-4 font-medium uppercase tracking-wider">
-                                                <span className="bg-surface px-2 py-1 rounded border border-border">{item.category}</span>
-                                                <div className="flex items-center gap-1.5 opacity-90 border border-border px-2 py-1 bg-surface rounded">
-                                                    <div className={clsx("w-2 h-2 rounded-full", item.isVeg ? "bg-teal shadow-[0_0_8px_rgba(58,140,114,0.6)]" : "bg-danger shadow-[0_0_8px_rgba(196,75,58,0.6)]")} />
-                                                    {item.isVeg ? 'Veg' : 'Non-Veg'}
+                                        <div className="p-4">
+                                            <div className="flex justify-between items-center text-[11px] text-[#818181] mb-4 font-semibold uppercase tracking-wider">
+                                                <span className="bg-[#F8F8F8] px-2.5 py-0.5 rounded-full border border-[#EBEBEB]">{item.category}</span>
+                                                <div className="flex items-center gap-1.5 border border-[#EBEBEB] px-2.5 py-0.5 bg-[#F8F8F8] rounded-full">
+                                                    <div className={clsx("w-2 h-2 rounded-full", item.isVeg ? "bg-[#5A724A]" : "bg-red-500")} />
+                                                    <span className={item.isVeg ? "text-[#5A724A]" : "text-red-700"}>{item.isVeg ? 'Veg' : 'Non-Veg'}</span>
                                                 </div>
                                             </div>
-                                            <div className="flex gap-3">
-                                                <button onClick={() => handleEdit(item)} className="flex-1 bg-surface hover:bg-border/50 text-foreground-pale py-2.5 rounded-xl border border-border text-xs font-bold transition-colors flex items-center justify-center gap-2">
-                                                    <Edit2 size={14} /> Edit
+                                            <div className="flex gap-2.5">
+                                                <button
+                                                    onClick={() => handleEdit(item)}
+                                                    className="flex-1 bg-[#F8F8F8] hover:bg-[#EBEBEB] text-[#222222] py-2 rounded-full border border-[#EBEBEB] text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
+                                                >
+                                                    <Edit2 size={13} /> Edit
                                                 </button>
-                                                <button onClick={() => handleDelete(item._id)} className="flex-1 bg-danger/5 hover:bg-danger/10 text-danger py-2.5 rounded-xl border border-danger/20 text-xs font-bold transition-colors flex items-center justify-center gap-2">
-                                                    <Trash2 size={14} /> Delete
+                                                <button
+                                                    onClick={() => handleDelete(item._id)}
+                                                    className="flex-1 bg-red-50 hover:bg-red-100 text-red-700 py-2 rounded-full border border-red-200 text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
+                                                >
+                                                    <Trash2 size={13} /> Delete
                                                 </button>
                                             </div>
                                         </div>
                                     </div>
                                 ))}
                                 {menuItems.length === 0 && !isLoading && (
-                                    <div className="col-span-full py-24 text-center text-muted flex flex-col items-center">
-                                        <UtensilsCrossed size={48} className="mb-4 opacity-30" />
-                                        <p className="text-lg">No menu items found. Add your first dish.</p>
+                                    <div className="col-span-full py-20 text-center text-[#818181] flex flex-col items-center">
+                                        <UtensilsCrossed size={44} className="mb-2 opacity-30 text-[#5A724A]" />
+                                        <p className="text-sm font-semibold">No menu dishes found. Add your first recipe.</p>
                                     </div>
                                 )}
                             </div>
@@ -312,4 +322,3 @@ const InventoryPage = () => {
 };
 
 export default InventoryPage;
-

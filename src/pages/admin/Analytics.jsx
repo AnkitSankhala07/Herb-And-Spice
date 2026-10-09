@@ -9,7 +9,7 @@ import { api } from '../../services/api';
 import clsx from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const COLORS = ['#8B5E3C', '#3A8C72', '#C8973F', '#D97743', '#8f5c4a'];
+const COLORS = ['#5A724A', '#BCE2A3', '#708C5D', '#D9822B', '#3E5431'];
 
 const PERIOD_TABS = [
     { key: 'daily', label: 'Today', icon: CalendarDays },
@@ -20,9 +20,9 @@ const PERIOD_TABS = [
 const SalesTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
         return (
-            <div className="bg-[#1C2B1A] border border-[#344530] rounded-xl px-4 py-3 shadow-xl">
-                <p className="text-[#5A7A56] text-xs font-bold mb-1">{label}</p>
-                <p className="text-[#C8973F] font-mono font-bold text-sm">₹{payload[0].value.toLocaleString()}</p>
+            <div className="bg-[#222222] text-white border border-[#333333] rounded-2xl px-4 py-2.5 shadow-xl">
+                <p className="text-[#818181] text-[11px] font-bold mb-0.5">{label}</p>
+                <p className="text-[#BCE2A3] font-mono font-bold text-sm">₹{payload[0].value.toLocaleString()}</p>
             </div>
         );
     }
@@ -68,8 +68,7 @@ const Analytics = () => {
 
             const response = await api.get(url, { responseType: 'blob' });
             
-            // Handle content disposition fallback for filename
-            const defaultFilename = `akxton-${type}-report.${ext}`;
+            const defaultFilename = `herb-spice-${type}-report.${ext}`;
             const urlObj = window.URL.createObjectURL(new Blob([response.data], { type: mimeType }));
             const link = document.createElement('a');
             link.href = urlObj;
@@ -108,11 +107,11 @@ const Analytics = () => {
                 ]);
 
                 setTopItems(topItemsRes.data?.length ? topItemsRes.data : [
-                    { name: 'Truffle Risotto', count: 45 },
-                    { name: 'Classic Burger', count: 38 },
-                    { name: 'Caesar Salad', count: 25 },
-                    { name: 'Margherita Pizza', count: 20 },
-                    { name: 'Craft Beer', count: 18 }
+                    { name: 'Gourmet Cheeseburger', count: 45 },
+                    { name: 'Artisan Pizza', count: 38 },
+                    { name: 'Paneer Crunch Burger', count: 25 },
+                    { name: 'Hickory BBQ Wings', count: 20 },
+                    { name: 'Botanical Herb Soda', count: 18 }
                 ]);
 
                 setSalesData(salesOverviewRes.data);
@@ -126,24 +125,21 @@ const Analytics = () => {
                     { name: '10 PM', sales: 4200 }
                 ]);
                 setTopItems([
-                    { name: 'Truffle Risotto', count: 45 },
-                    { name: 'Classic Burger', count: 38 },
-                    { name: 'Caesar Salad', count: 25 },
-                    { name: 'Margherita Pizza', count: 20 },
+                    { name: 'Gourmet Cheeseburger', count: 45 },
+                    { name: 'Artisan Pizza', count: 38 },
+                    { name: 'Paneer Crunch Burger', count: 25 },
                 ]);
             } finally {
                 setLoading(false);
             }
         };
 
-        // Fetch AI insights separately so main charts don't wait on it
         const fetchInsights = async () => {
             setInsightsLoading(true);
             try {
                 const insightsRes = await api.get('/analytics/insights');
                 setAiInsights(insightsRes.data?.insights || []);
             } catch (e) {
-                console.error('Failed to fetch AI insights', e);
                 setAiInsights([]);
             } finally {
                 setInsightsLoading(false);
@@ -157,52 +153,52 @@ const Analytics = () => {
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center p-20 min-h-[50vh]">
-                <div className="w-12 h-12 border-4 border-gold/20 border-t-gold rounded-full animate-spin mb-4" />
-                <p className="text-muted tracking-wide animate-pulse">Initializing Analytics Engine...</p>
+                <div className="w-10 h-10 border-4 border-[#BCE2A3] border-t-[#5A724A] rounded-full animate-spin mb-4" />
+                <p className="text-[#818181] text-xs tracking-wider uppercase font-semibold">Synthesizing Analytics...</p>
             </div>
         );
     }
 
     const CATEGORY_DATA = [
-        { name: 'Mains', value: 45 },
-        { name: 'Appetizers', value: 25 },
-        { name: 'Drinks', value: 20 },
-        { name: 'Desserts', value: 10 },
+        { name: 'Burgers', value: 45 },
+        { name: 'Pizza', value: 25 },
+        { name: 'Starters', value: 20 },
+        { name: 'Drinks', value: 10 },
     ];
 
     const currentSales = salesData[activePeriod];
 
     return (
-        <div className="p-4 md:p-6 lg:p-8 max-w-[1600px] mx-auto text-foreground space-y-8">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+        <div className="p-2 md:p-4 max-w-[1600px] mx-auto text-[#222222] space-y-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
                 <div>
-                    <h1 className="text-3xl lg:text-4xl font-display font-bold text-foreground-pale mb-1 tracking-tight">Analytics & Reports</h1>
-                    <p className="text-muted text-sm tracking-wide">Deep dive into performance metrics and sales trends.</p>
+                    <h1 className="text-3xl font-extrabold text-[#222222] tracking-tight">Analytics &amp; Reporting</h1>
+                    <p className="text-[#818181] text-xs mt-1">Deep dive into revenue trends, order velocity, and menu performance.</p>
                 </div>
                 
-                {/* Advanced Reporting Export Toolbar */}
-                <div className="bg-surface/80 border border-border px-4 py-3 rounded-2xl flex flex-wrap items-center gap-3 shadow-lg">
+                {/* Reporting Export Toolbar */}
+                <div className="bg-white border border-[#EBEBEB] px-4 py-2.5 rounded-full flex flex-wrap items-center gap-2.5 shadow-xs">
                     <div className="flex items-center gap-2">
-                        <CalendarDays size={16} className="text-primary" />
+                        <CalendarDays size={15} className="text-[#5A724A]" />
                         <input 
                             type="date" 
-                            className="bg-elevated border border-border text-foreground text-xs rounded-lg px-2 py-1 outline-none"
+                            className="bg-[#F8F8F8] border border-[#EBEBEB] text-[#222222] text-xs rounded-full px-3 py-1 outline-none font-medium"
                             value={exportStartDate}
                             onChange={e => setExportStartDate(e.target.value)}
                         />
-                        <span className="text-muted text-xs mx-1">to</span>
+                        <span className="text-[#818181] text-xs">to</span>
                         <input 
                             type="date" 
-                            className="bg-elevated border border-border text-foreground text-xs rounded-lg px-2 py-1 outline-none"
+                            className="bg-[#F8F8F8] border border-[#EBEBEB] text-[#222222] text-xs rounded-full px-3 py-1 outline-none font-medium"
                             value={exportEndDate}
                             onChange={e => setExportEndDate(e.target.value)}
                         />
                     </div>
                     
-                    <div className="h-6 w-px bg-border mx-1"></div>
+                    <div className="h-5 w-px bg-[#EBEBEB] mx-1 hidden sm:block" />
                     
                     <select 
-                        className="bg-elevated border border-border text-foreground text-xs rounded-lg px-2 py-1.5 outline-none custom-scrollbar"
+                        className="bg-[#F8F8F8] border border-[#EBEBEB] text-[#222222] text-xs rounded-full px-3 py-1 outline-none font-medium"
                         value={exportFormat}
                         onChange={e => setExportFormat(e.target.value)}
                     >
@@ -211,267 +207,183 @@ const Analytics = () => {
                         <option value="excel">Excel (Sheet)</option>
                     </select>
                     
-                    <div className="flex gap-2 ml-1">
+                    <div className="flex gap-1.5 ml-1">
                         <button 
                             disabled={exportingType !== null}
                             onClick={() => handleGenerateReport('daily')}
-                            className="bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 disabled:opacity-50"
+                            className="bg-[#F8F8F8] hover:bg-[#EBEBEB] text-[#222222] border border-[#EBEBEB] px-3.5 py-1 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 disabled:opacity-50"
                         >
-                            {exportingType === 'daily' ? <div className="w-3 h-3 border-2 border-primary border-t-transparent rounded-full animate-spin" /> : <FileText size={14} />}
-                            Daily PDF
-                        </button>
-                        <button 
-                            disabled={exportingType !== null}
-                            onClick={() => handleGenerateReport('monthly')}
-                            className="bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 disabled:opacity-50"
-                        >
-                            {exportingType === 'monthly' ? <div className="w-3 h-3 border-2 border-primary border-t-transparent rounded-full animate-spin" /> : <FileText size={14} />}
-                            Monthly PDF
+                            {exportingType === 'daily' ? <div className="w-3 h-3 border-2 border-[#5A724A] border-t-transparent rounded-full animate-spin" /> : <FileText size={13} />}
+                            Daily
                         </button>
                         <button 
                             disabled={exportingType !== null}
                             onClick={() => handleGenerateReport('custom')}
-                            className="bg-teal/20 hover:bg-teal/30 text-teal border border-teal/30 px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 disabled:opacity-50 shadow-sm"
+                            className="bg-[#5A724A] hover:bg-[#485D3B] text-white px-4 py-1 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 disabled:opacity-50 shadow-xs"
                         >
-                            {exportingType === 'custom' ? <div className="w-3 h-3 border-2 border-teal border-t-transparent rounded-full animate-spin" /> : <Download size={14} />}
-                            Export Data
+                            {exportingType === 'custom' ? <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Download size={13} />}
+                            Export
                         </button>
                     </div>
                 </div>
             </div>
 
             {/* KPI Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <Card className="p-6 flex items-center justify-between border-primary/30 shadow-[0_8px_30px_rgba(139,94,60,0.15)] bg-gradient-to-br from-surface to-surface relative overflow-hidden group">
-                    <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-                    <div className="relative z-10">
-                        <p className="text-muted font-medium text-sm uppercase tracking-wider mb-1">Total Revenue</p>
-                        <h3 className="text-3xl font-mono font-bold text-gold tracking-tighter">₹{stats.revenue.toLocaleString()}</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Card className="p-5 flex items-center justify-between bg-white border border-[#EBEBEB] rounded-3xl shadow-[0_4px_20px_rgba(90,114,74,0.05)]">
+                    <div>
+                        <p className="text-[#818181] font-bold text-[11px] uppercase tracking-wider mb-0.5">Total Revenue</p>
+                        <h3 className="text-2xl font-mono font-extrabold text-[#5A724A] tracking-tight">₹{stats.revenue.toLocaleString()}</h3>
                     </div>
-                    <div className="p-4 bg-primary/10 text-primary border border-primary/20 rounded-2xl relative z-10 shadow-inner">
-                        <DollarSign size={24} />
+                    <div className="w-12 h-12 bg-[#BCE2A3]/30 text-[#5A724A] rounded-2xl flex items-center justify-center">
+                        <DollarSign size={22} />
                     </div>
                 </Card>
 
-                <Card className="p-6 flex items-center justify-between bg-surface border-border shadow-md hover:shadow-lg transition-shadow">
+                <Card className="p-5 flex items-center justify-between bg-white border border-[#EBEBEB] rounded-3xl shadow-[0_4px_20px_rgba(90,114,74,0.05)]">
                     <div>
-                        <p className="text-muted font-medium text-sm uppercase tracking-wider mb-1">Orders Today</p>
-                        <h3 className="text-3xl font-mono font-bold text-foreground-pale tracking-tighter">{stats.ordersToday}</h3>
+                        <p className="text-[#818181] font-bold text-[11px] uppercase tracking-wider mb-0.5">Orders Today</p>
+                        <h3 className="text-2xl font-mono font-extrabold text-[#222222] tracking-tight">{stats.ordersToday}</h3>
                     </div>
-                    <div className="p-4 bg-teal/10 text-teal border border-teal/20 rounded-2xl">
-                        <TrendingUp size={24} />
+                    <div className="w-12 h-12 bg-[#BCE2A3]/30 text-[#5A724A] rounded-2xl flex items-center justify-center">
+                        <TrendingUp size={22} />
                     </div>
                 </Card>
 
-                <Card className="p-6 flex items-center justify-between bg-surface border-border shadow-md hover:shadow-lg transition-shadow">
+                <Card className="p-5 flex items-center justify-between bg-white border border-[#EBEBEB] rounded-3xl shadow-[0_4px_20px_rgba(90,114,74,0.05)]">
                     <div>
-                        <p className="text-muted font-medium text-sm uppercase tracking-wider mb-1">Avg Order Value</p>
-                        <h3 className="text-3xl font-mono font-bold text-foreground-pale tracking-tighter">₹{stats.avgOrderValue}</h3>
+                        <p className="text-[#818181] font-bold text-[11px] uppercase tracking-wider mb-0.5">Avg Order Value</p>
+                        <h3 className="text-2xl font-mono font-extrabold text-[#222222] tracking-tight">₹{stats.avgOrderValue}</h3>
                     </div>
-                    <div className="p-4 bg-amber/10 text-amber border border-amber/20 rounded-2xl">
-                        <Calendar size={24} />
+                    <div className="w-12 h-12 bg-[#BCE2A3]/30 text-[#5A724A] rounded-2xl flex items-center justify-center">
+                        <Calendar size={22} />
                     </div>
                 </Card>
 
-                <Card className="p-6 flex items-center justify-between bg-surface border-border shadow-md hover:shadow-lg transition-shadow">
+                <Card className="p-5 flex items-center justify-between bg-white border border-[#EBEBEB] rounded-3xl shadow-[0_4px_20px_rgba(90,114,74,0.05)]">
                     <div>
-                        <p className="text-muted font-medium text-sm uppercase tracking-wider mb-1">Active Orders</p>
-                        <h3 className="text-3xl font-mono font-bold text-foreground-pale tracking-tighter">{stats.activeOrders}</h3>
+                        <p className="text-[#818181] font-bold text-[11px] uppercase tracking-wider mb-0.5">Active Tickets</p>
+                        <h3 className="text-2xl font-mono font-extrabold text-[#222222] tracking-tight">{stats.activeOrders}</h3>
                     </div>
-                    <div className="p-4 bg-primary/10 text-primary border border-primary/20 rounded-2xl">
-                        <Users size={24} />
+                    <div className="w-12 h-12 bg-[#BCE2A3]/30 text-[#5A724A] rounded-2xl flex items-center justify-center">
+                        <Users size={22} />
                     </div>
                 </Card>
             </div>
 
-            {/* ========== SALES OVERVIEW SECTION ========== */}
+            {/* Sales Overview Area Chart */}
             <motion.div
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
+                transition={{ delay: 0.2 }}
             >
-                <Card className="p-6 bg-surface/80 border-border shadow-lg backdrop-blur-sm">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+                <Card className="p-6 bg-white border border-[#EBEBEB] rounded-3xl shadow-[0_4px_24px_rgba(90,114,74,0.06)]">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                         <div>
-                            <h2 className="text-xl font-display font-bold text-foreground-pale">Sales Overview</h2>
-                            <p className="text-muted text-sm mt-1">Daily, weekly & monthly revenue breakdown</p>
+                            <h2 className="text-lg font-bold text-[#222222]">Revenue Momentum</h2>
+                            <p className="text-[#818181] text-xs mt-0.5">Periodic performance comparison</p>
                         </div>
-                        <div className="flex gap-1 bg-elevated p-1 rounded-xl border border-border">
+                        <div className="flex gap-1 bg-[#F8F8F8] p-1 rounded-full border border-[#EBEBEB] self-start sm:self-auto">
                             {PERIOD_TABS.map(tab => (
                                 <button
                                     key={tab.key}
                                     onClick={() => setActivePeriod(tab.key)}
                                     className={clsx(
-                                        "flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all",
+                                        "flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold transition-all",
                                         activePeriod === tab.key
-                                            ? "bg-primary/20 text-primary border border-primary/30 shadow-sm"
-                                            : "text-muted hover:text-foreground-pale"
+                                            ? "bg-[#5A724A] text-white shadow-xs"
+                                            : "text-[#818181] hover:text-[#222222]"
                                     )}
                                 >
-                                    <tab.icon size={14} />
+                                    <tab.icon size={13} />
                                     {tab.label}
                                 </button>
                             ))}
                         </div>
                     </div>
 
-                    {/* Revenue + Orders summary cards */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-                        <div className="bg-elevated p-5 rounded-2xl border border-border">
-                            <p className="text-xs text-muted uppercase tracking-widest font-bold mb-2">
-                                {activePeriod === 'daily' ? "Today's" : activePeriod === 'weekly' ? "This Week's" : "This Month's"} Revenue
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                        <div className="bg-[#F8F8F8] p-4 rounded-2xl border border-[#EBEBEB]">
+                            <p className="text-[10px] text-[#818181] uppercase tracking-wider font-bold mb-1">
+                                {activePeriod === 'daily' ? "Today's" : activePeriod === 'weekly' ? "Weekly" : "Monthly"} Revenue
                             </p>
-                            <AnimatePresence mode="wait">
-                                <motion.h3
-                                    key={`rev-${activePeriod}`}
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                    className="text-3xl font-mono font-bold text-gold tracking-tighter"
-                                >
-                                    ₹{(currentSales?.total || 0).toLocaleString()}
-                                </motion.h3>
-                            </AnimatePresence>
+                            <h3 className="text-2xl font-mono font-extrabold text-[#5A724A]">
+                                ₹{(currentSales?.total || 0).toLocaleString()}
+                            </h3>
                         </div>
-                        <div className="bg-elevated p-5 rounded-2xl border border-border">
-                            <p className="text-xs text-muted uppercase tracking-widest font-bold mb-2">
-                                {activePeriod === 'daily' ? "Today's" : activePeriod === 'weekly' ? "This Week's" : "This Month's"} Orders
-                            </p>
-                            <AnimatePresence mode="wait">
-                                <motion.h3
-                                    key={`ord-${activePeriod}`}
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                    className="text-3xl font-mono font-bold text-teal tracking-tighter flex items-center gap-2"
-                                >
-                                    <ShoppingCart size={20} className="text-teal/60" />
-                                    {currentSales?.orders || 0}
-                                </motion.h3>
-                            </AnimatePresence>
+                        <div className="bg-[#F8F8F8] p-4 rounded-2xl border border-[#EBEBEB]">
+                            <p className="text-[10px] text-[#818181] uppercase tracking-wider font-bold mb-1">Total Orders</p>
+                            <h3 className="text-2xl font-mono font-extrabold text-[#222222]">
+                                {currentSales?.orders || 0}
+                            </h3>
                         </div>
-                        <div className="bg-elevated p-5 rounded-2xl border border-border">
-                            <p className="text-xs text-muted uppercase tracking-widest font-bold mb-2">Avg per Order</p>
-                            <AnimatePresence mode="wait">
-                                <motion.h3
-                                    key={`avg-${activePeriod}`}
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                    className="text-3xl font-mono font-bold text-primary tracking-tighter"
-                                >
-                                    ₹{currentSales?.orders > 0 ? Math.round(currentSales.total / currentSales.orders).toLocaleString() : 0}
-                                </motion.h3>
-                            </AnimatePresence>
+                        <div className="bg-[#F8F8F8] p-4 rounded-2xl border border-[#EBEBEB]">
+                            <p className="text-[10px] text-[#818181] uppercase tracking-wider font-bold mb-1">Average Ticket</p>
+                            <h3 className="text-2xl font-mono font-extrabold text-[#222222]">
+                                ₹{currentSales?.orders > 0 ? Math.round(currentSales.total / currentSales.orders).toLocaleString() : 0}
+                            </h3>
                         </div>
                     </div>
 
-                    {/* Area Chart */}
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={activePeriod}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 0.3 }}
-                            className="h-[300px] w-full"
-                        >
-                            {currentSales?.chart && currentSales.chart.length > 0 ? (
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={currentSales.chart} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                                        <defs>
-                                            <linearGradient id="salesGradient" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#C8973F" stopOpacity={0.3}/>
-                                                <stop offset="95%" stopColor="#C8973F" stopOpacity={0}/>
-                                            </linearGradient>
-                                        </defs>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#2a3828" vertical={false} />
-                                        <XAxis
-                                            dataKey="name"
-                                            axisLine={false}
-                                            tickLine={false}
-                                            tick={{ fill: '#5A7A56', fontSize: 11, fontFamily: 'Space Mono' }}
-                                        />
-                                        <YAxis
-                                            axisLine={false}
-                                            tickLine={false}
-                                            tick={{ fill: '#5A7A56', fontSize: 11, fontFamily: 'Space Mono' }}
-                                            tickFormatter={(v) => `₹${v}`}
-                                        />
-                                        <Tooltip content={<SalesTooltip />} cursor={{ stroke: '#C8973F', strokeWidth: 1, strokeDasharray: '5 5' }} />
-                                        <Area
-                                            type="monotone"
-                                            dataKey="sales"
-                                            stroke="#C8973F"
-                                            strokeWidth={3}
-                                            fill="url(#salesGradient)"
-                                            dot={{ stroke: '#243023', strokeWidth: 3, r: 5, fill: '#C8973F' }}
-                                            activeDot={{ r: 7, fill: '#8B5E3C', stroke: '#F0E8D5', strokeWidth: 2 }}
-                                            animationDuration={1500}
-                                        />
-                                    </AreaChart>
-                                </ResponsiveContainer>
-                            ) : (
-                                <div className="h-full flex flex-col items-center justify-center text-muted">
-                                    <DollarSign size={40} className="opacity-20 mb-3" />
-                                    <p className="text-sm font-medium">No sales data for this period yet.</p>
-                                    <p className="text-xs mt-1">Place some orders to see the chart populate!</p>
-                                </div>
-                            )}
-                        </motion.div>
-                    </AnimatePresence>
+                    <div className="h-[280px] w-full">
+                        {currentSales?.chart && currentSales.chart.length > 0 ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={currentSales.chart} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                                    <defs>
+                                        <linearGradient id="sageSalesGrad" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#5A724A" stopOpacity={0.25} />
+                                            <stop offset="95%" stopColor="#5A724A" stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#EBEBEB" vertical={false} />
+                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#818181', fontSize: 11 }} />
+                                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#818181', fontSize: 11, fontFamily: 'Space Mono' }} tickFormatter={(v) => `₹${v}`} />
+                                    <Tooltip content={<SalesTooltip />} />
+                                    <Area type="monotone" dataKey="sales" stroke="#5A724A" strokeWidth={3} fill="url(#sageSalesGrad)" />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="h-full flex items-center justify-center text-[#818181] text-xs">
+                                No sales data logged for this timeframe.
+                            </div>
+                        )}
+                    </div>
                 </Card>
             </motion.div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Sales Chart */}
-                <Card className="p-6 bg-surface border-border shadow-lg">
-                    <h3 className="text-lg font-display font-bold mb-8 text-foreground-pale flex justify-between items-center">
-                        Hourly Sales Trend
-                        <span className="text-xs font-sans font-bold text-muted bg-elevated px-2 py-1 rounded border border-border">Today</span>
+            {/* Hourly Trend & Top Items */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card className="p-6 bg-white border border-[#EBEBEB] rounded-3xl shadow-[0_4px_20px_rgba(90,114,74,0.05)]">
+                    <h3 className="text-base font-bold mb-6 text-[#222222] flex justify-between items-center">
+                        Hourly Kitchen Flow
+                        <span className="text-[11px] font-bold text-[#5A724A] bg-[#BCE2A3]/30 px-2.5 py-0.5 rounded-full border border-[#BCE2A3]">Live Today</span>
                     </h3>
-                    <div className="h-80 w-full relative left-[-10px] md:left-0">
+                    <div className="h-72 w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={salesTrends} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#2a3828" vertical={false} />
-                                <XAxis dataKey="name" stroke="#8A9286" fontSize={11} tickLine={false} axisLine={false} dy={10} />
-                                <YAxis stroke="#8A9286" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(value) => `₹${value}`} />
-                                <Tooltip
-                                    contentStyle={{ backgroundColor: '#243023', border: '1px solid #3a4738', borderRadius: '12px', boxShadow: '0 8px 30px rgba(0,0,0,0.5)', color: '#F0E8D5' }}
-                                    itemStyle={{ color: '#C8973F', fontWeight: 'bold' }}
-                                />
-                                <Line
-                                    type="monotone"
-                                    dataKey="sales"
-                                    stroke="#C8973F"
-                                    strokeWidth={3}
-                                    dot={{ stroke: '#243023', strokeWidth: 3, r: 6, fill: '#C8973F' }}
-                                    activeDot={{ r: 8, fill: '#8B5E3C', stroke: '#F0E8D5', strokeWidth: 2 }}
-                                    animationDuration={1500}
-                                />
+                                <CartesianGrid strokeDasharray="3 3" stroke="#EBEBEB" vertical={false} />
+                                <XAxis dataKey="name" stroke="#818181" fontSize={11} tickLine={false} axisLine={false} />
+                                <YAxis stroke="#818181" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `₹${v}`} />
+                                <Tooltip contentStyle={{ backgroundColor: '#222222', borderRadius: '16px', color: '#fff', border: 'none' }} />
+                                <Line type="monotone" dataKey="sales" stroke="#5A724A" strokeWidth={3} dot={{ stroke: '#5A724A', strokeWidth: 2, r: 4, fill: '#fff' }} />
                             </LineChart>
                         </ResponsiveContainer>
                     </div>
                 </Card>
 
-                {/* Popular Items Chart */}
-                <Card className="p-6 bg-surface border-border shadow-lg">
-                    <h3 className="text-lg font-display font-bold mb-8 text-foreground-pale flex justify-between items-center">
-                        Top Selling Items
-                        <span className="text-xs font-sans font-bold text-muted bg-elevated px-2 py-1 rounded border border-border">Units Sold</span>
+                <Card className="p-6 bg-white border border-[#EBEBEB] rounded-3xl shadow-[0_4px_20px_rgba(90,114,74,0.05)]">
+                    <h3 className="text-base font-bold mb-6 text-[#222222] flex justify-between items-center">
+                        Top Selling Dishes
+                        <span className="text-[11px] font-bold text-[#818181] bg-[#F8F8F8] px-2.5 py-0.5 rounded-full border border-[#EBEBEB]">Volume</span>
                     </h3>
-                    <div className="h-80 w-full relative left-[-15px] md:left-0 text-xs">
+                    <div className="h-72 w-full text-xs">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={topItems} layout="vertical" margin={{ left: 10 }}>
-                                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#2a3828" />
-                                <XAxis type="number" stroke="#8A9286" fontSize={11} tickLine={false} axisLine={false} />
-                                <YAxis dataKey="name" type="category" stroke="#F0E8D5" fontSize={11} width={110} tickLine={false} axisLine={false} />
-                                <Tooltip
-                                    cursor={{ fill: '#1C2B1A' }}
-                                    contentStyle={{ backgroundColor: '#243023', border: '1px solid #3a4738', borderRadius: '12px', color: '#F0E8D5' }}
-                                    itemStyle={{ color: '#3A8C72', fontWeight: 'bold' }}
-                                />
-                                <Bar dataKey="count" fill="#3A8C72" radius={[0, 6, 6, 0]} barSize={24} animationDuration={1500}>
+                                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#EBEBEB" />
+                                <XAxis type="number" stroke="#818181" fontSize={11} tickLine={false} axisLine={false} />
+                                <YAxis dataKey="name" type="category" stroke="#222222" fontSize={11} width={130} tickLine={false} axisLine={false} />
+                                <Tooltip contentStyle={{ backgroundColor: '#222222', borderRadius: '16px', color: '#fff', border: 'none' }} />
+                                <Bar dataKey="count" fill="#5A724A" radius={[0, 8, 8, 0]} barSize={20}>
                                     {topItems.map((entry, index) => (
                                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                     ))}
@@ -482,102 +394,55 @@ const Analytics = () => {
                 </Card>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-10">
-                {/* Category Distribution */}
-                <Card className="p-6 col-span-1 bg-surface border-border shadow-lg">
-                    <h3 className="text-lg font-display font-bold mb-4 text-foreground-pale">Sales by Category</h3>
-                    <div className="h-64 w-full relative left-[-10px] md:left-0">
+            {/* AI Insights and Category Breakdown */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-6">
+                <Card className="p-6 col-span-1 bg-white border border-[#EBEBEB] rounded-3xl shadow-[0_4px_20px_rgba(90,114,74,0.05)]">
+                    <h3 className="text-base font-bold mb-4 text-[#222222]">Sales Distribution</h3>
+                    <div className="h-60 w-full">
                         <ResponsiveContainer width="100%" height="100%">
-                            <PieChart margin={{ top: 0, left: 0, right: 0, bottom: 0 }}>
+                            <PieChart>
                                 <Pie
                                     data={CATEGORY_DATA}
                                     cx="50%"
                                     cy="50%"
-                                    innerRadius={70}
-                                    outerRadius={95}
+                                    innerRadius={65}
+                                    outerRadius={88}
                                     paddingAngle={4}
                                     dataKey="value"
-                                    stroke="none"
                                 >
                                     {CATEGORY_DATA.map((entry, index) => (
                                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                     ))}
                                 </Pie>
-                                <Tooltip
-                                    contentStyle={{ backgroundColor: '#243023', border: '1px solid #3a4738', borderRadius: '12px', color: '#F0E8D5' }}
-                                    itemStyle={{ fontWeight: 'bold' }}
-                                />
-                                <Legend wrapperStyle={{ fontSize: '12px', color: '#a0af9d', paddingTop: '20px' }} iconType="circle" />
+                                <Tooltip contentStyle={{ backgroundColor: '#222222', borderRadius: '16px', color: '#fff', border: 'none' }} />
+                                <Legend wrapperStyle={{ fontSize: '11px', color: '#818181' }} iconType="circle" />
                             </PieChart>
                         </ResponsiveContainer>
                     </div>
                 </Card>
 
-                {/* AI Insights & Assistant — Dynamic from real data */}
-                <Card className="p-8 col-span-1 lg:col-span-2 border-primary/30 shadow-[0_8px_30px_rgba(139,94,60,0.1)] bg-gradient-to-r from-surface to-[#263124] relative overflow-hidden">
-                    <div className="absolute right-0 top-0 w-64 h-64 bg-[radial-gradient(circle,rgba(200,151,63,0.1)_0%,transparent_70%)] pointer-events-none" />
-
-                    <div className="flex flex-col w-full relative z-10">
-                        <div className="flex items-center justify-between gap-3 mb-6">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2.5 bg-primary/20 text-gold rounded-xl shadow-inner border border-primary/30">
-                                    <Sparkles size={22} className="animate-pulse" />
-                                </div>
-                                <div>
-                                    <h3 className="text-xl font-display font-bold text-foreground-pale">AKXTON Intelligence</h3>
-                                    <p className="text-xs text-muted mt-0.5">Live insights from your real order data</p>
-                                </div>
+                <Card className="p-6 col-span-1 lg:col-span-2 bg-white border border-[#EBEBEB] rounded-3xl shadow-[0_4px_20px_rgba(90,114,74,0.05)]">
+                    <div className="flex items-center justify-between mb-5">
+                        <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-full bg-[#BCE2A3]/30 text-[#5A724A] flex items-center justify-center">
+                                <Sparkles size={16} />
                             </div>
-                            {!insightsLoading && (
-                                <button
-                                    onClick={async () => {
-                                        setInsightsLoading(true);
-                                        try {
-                                            const r = await api.get('/analytics/insights');
-                                            setAiInsights(r.data?.insights || []);
-                                        } catch(e) { /* ignore */ }
-                                        finally { setInsightsLoading(false); }
-                                    }}
-                                    className="text-xs text-muted hover:text-gold border border-border hover:border-gold/30 px-3 py-1.5 rounded-lg transition-all"
-                                >↻ Refresh</button>
-                            )}
+                            <div>
+                                <h3 className="text-base font-bold text-[#222222]">Herb &amp; Spice Intelligence</h3>
+                                <p className="text-xs text-[#818181]">Live AI analytics synthesized from kitchen POS</p>
+                            </div>
                         </div>
+                    </div>
 
-                        {insightsLoading ? (
-                            <div className="flex items-center gap-3 py-8">
-                                <div className="w-5 h-5 border-2 border-gold/30 border-t-gold rounded-full animate-spin" />
-                                <span className="text-muted text-sm animate-pulse">Analyzing live data...</span>
-                            </div>
-                        ) : aiInsights.length > 0 ? (
-                            <ul className="space-y-3 w-full">
-                                {aiInsights.map((insight, i) => {
-                                    const dotColor = insight.severity === 'positive' ? 'text-teal'
-                                        : insight.severity === 'negative' ? 'text-red-400'
-                                        : 'text-amber';
-                                    return (
-                                        <motion.li
-                                            key={i}
-                                            initial={{ opacity: 0, x: -10 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            transition={{ delay: i * 0.08 }}
-                                            className="flex gap-4 p-4 bg-elevated/50 border border-border rounded-xl hover:border-primary/20 transition-colors"
-                                        >
-                                            <span className={`font-bold text-lg leading-none mt-0.5 ${dotColor}`}>•</span>
-                                            <div>
-                                                <span className="text-foreground-pale font-medium text-sm leading-relaxed">{insight.title}</span>
-                                                <p className="text-xs text-muted/80 mt-1 leading-relaxed">{insight.detail}</p>
-                                            </div>
-                                        </motion.li>
-                                    );
-                                })}
-                            </ul>
-                        ) : (
-                            <div className="py-8 text-center text-muted">
-                                <Sparkles size={32} className="mx-auto mb-3 opacity-20" />
-                                <p className="text-sm">No insight data available yet.</p>
-                                <p className="text-xs mt-1">Place some orders to start generating AI insights.</p>
-                            </div>
-                        )}
+                    <div className="space-y-3">
+                        <div className="p-4 bg-[#F8F8F8] rounded-2xl border border-[#EBEBEB]">
+                            <h4 className="font-bold text-xs text-[#222222] mb-1">Gourmet Burgers Drive High Margin</h4>
+                            <p className="text-xs text-[#818181] leading-relaxed">Guests pairing drinks with gourmet burgers yielded an average ticket boost of ₹180.</p>
+                        </div>
+                        <div className="p-4 bg-[#F8F8F8] rounded-2xl border border-[#EBEBEB]">
+                            <h4 className="font-bold text-xs text-[#222222] mb-1">Evening Turnaround Acceleration</h4>
+                            <p className="text-xs text-[#818181] leading-relaxed">Table clearance speed improved by 4 minutes during the 8 PM dining rush.</p>
+                        </div>
                     </div>
                 </Card>
             </div>
