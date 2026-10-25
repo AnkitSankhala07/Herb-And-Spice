@@ -97,43 +97,52 @@ export const FoodCard = ({ item, onClick }) => {
                     {item.description || "Fresh artisan ingredients and herbs."}
                 </p>
 
-                {/* Action Button: Pill-shaped dark charcoal or stepper */}
+                {/* Action Button: User-friendly & Mobile-friendly Pill */}
                 <div className="mt-auto h-10 w-full shrink-0" onClick={(e) => e.stopPropagation()}>
                     <AnimatePresence mode="popLayout" initial={false}>
                         {quantity === 0 ? (
                             <motion.button
                                 key="add"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                whileTap={{ scale: 0.96 }}
                                 onClick={handlePlus}
                                 disabled={!item.isAvailable}
-                                className="w-full h-full bg-[#222222] hover:bg-[#5A724A] text-white font-semibold rounded-full flex items-center justify-center gap-1.5 transition-colors text-xs tracking-wide shadow-sm"
+                                className={clsx(
+                                    "w-full h-full font-bold rounded-full flex items-center justify-center gap-1.5 transition-all text-xs tracking-wider uppercase shadow-xs select-none",
+                                    item.isAvailable 
+                                        ? "bg-[#222222] hover:bg-[#5A724A] text-white active:bg-[#5A724A]" 
+                                        : "bg-[#EBEBEB] text-[#818181] cursor-not-allowed"
+                                )}
                             >
-                                <Plus size={14} strokeWidth={2.5} /> Add to Order
+                                <Plus size={15} strokeWidth={3} className={item.isAvailable ? "text-[#BCE2A3]" : "text-[#818181]"} />
+                                <span>ADD</span>
                             </motion.button>
                         ) : (
                             <motion.div
                                 key="stepper"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                className="w-full h-full flex items-center justify-between bg-[#F4F6F0] border border-[#BCE2A3] rounded-full px-1.5 shadow-xs"
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                className="w-full h-full flex items-center justify-between bg-[#F4F6F0] border-2 border-[#5A724A] rounded-full p-1 shadow-xs"
                             >
                                 <button
                                     onClick={handleMinus}
-                                    className="w-7 h-7 flex items-center justify-center text-[#5A724A] bg-white rounded-full shadow-xs hover:bg-[#5A724A] hover:text-white transition-colors"
+                                    className="w-8 h-8 flex items-center justify-center text-[#5A724A] bg-white rounded-full shadow-xs hover:bg-[#B84E3A] hover:text-white active:scale-90 transition-all shrink-0"
                                     aria-label="Decrease quantity"
                                 >
-                                    <Minus size={14} strokeWidth={2.5} />
+                                    <Minus size={14} strokeWidth={3} />
                                 </button>
-                                <span className="font-bold text-[#222222] text-sm px-2">{quantity}</span>
+                                <span className="font-mono font-extrabold text-[#222222] text-sm px-2 select-none">
+                                    {quantity}
+                                </span>
                                 <button
                                     onClick={handlePlus}
-                                    className="w-7 h-7 flex items-center justify-center bg-[#5A724A] text-white rounded-full shadow-xs hover:bg-[#485D3B] transition-colors"
+                                    className="w-8 h-8 flex items-center justify-center bg-[#5A724A] text-white rounded-full shadow-xs hover:bg-[#485D3B] active:scale-90 transition-all shrink-0"
                                     aria-label="Increase quantity"
                                 >
-                                    <Plus size={14} strokeWidth={2.5} />
+                                    <Plus size={14} strokeWidth={3} />
                                 </button>
                             </motion.div>
                         )}
