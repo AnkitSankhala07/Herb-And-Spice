@@ -3,13 +3,34 @@ const PDFDocument = require('pdfkit');
 const { Parser } = require('json2csv');
 const ExcelJS = require('exceljs');
 
+// Helper to parse date string YYYY-MM-DD into local day boundary
+const parseDateBoundary = (dateStr, isEnd = false) => {
+    if (!dateStr) {
+        const d = new Date();
+        if (isEnd) d.setHours(23, 59, 59, 999);
+        else d.setHours(0, 0, 0, 0);
+        return d;
+    }
+    const parts = String(dateStr).split('-');
+    if (parts.length === 3) {
+        const y = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10) - 1;
+        const d = parseInt(parts[2], 10);
+        if (isEnd) return new Date(y, m, d, 23, 59, 59, 999);
+        return new Date(y, m, d, 0, 0, 0, 0);
+    }
+    const d = new Date(dateStr);
+    if (isEnd) d.setHours(23, 59, 59, 999);
+    else d.setHours(0, 0, 0, 0);
+    return d;
+};
+
 // @desc    Generate Daily Report (PDF)
 // @route   GET /api/reports/daily?date=YYYY-MM-DD
 const generateDailyReport = async (req, res) => {
     try {
-        const targetDate = req.query.date ? new Date(req.query.date) : new Date();
-        const startOfDay = new Date(targetDate.setHours(0, 0, 0, 0));
-        const endOfDay = new Date(targetDate.setHours(23, 59, 59, 999));
+        const startOfDay = parseDateBoundary(req.query.date, false);
+        const endOfDay = parseDateBoundary(req.query.date, true);
 
         const orders = await Order.find({
             createdAt: { $gte: startOfDay, $lte: endOfDay },
@@ -19,17 +40,19 @@ const generateDailyReport = async (req, res) => {
         const totalRevenue = orders.reduce((sum, order) => sum + order.totalAmount, 0);
         const totalItems = orders.reduce((sum, order) => sum + order.items.reduce((iSum, i) => iSum + i.quantity, 0), 0);
 
+        const dateLabel = startOfDay.toLocaleDateString('en-CA');
+
         // Generate PDF
         const doc = new PDFDocument({ margin: 50 });
         
         res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename=daily-report-${startOfDay.toISOString().split('T')[0]}.pdf`);
+        res.setHeader('Content-Disposition', `attachment; filename=daily-report-${dateLabel}.pdf`);
         
         doc.pipe(res);
 
         // Header
         doc.fontSize(24).font('Helvetica-Bold').text('Herb and Spice', { align: 'center' });
-        doc.fontSize(12).font('Helvetica').text(`Date: ${startOfDay.toISOString().split('T')[0]}`, { align: 'center' });
+        doc.fontSize(12).font('Helvetica').text(`Date: ${dateLabel}`, { align: 'center' });
         doc.moveDown(2);
 
         // Summary Statistics
@@ -59,7 +82,7 @@ const generateDailyReport = async (req, res) => {
         let currentY = doc.y;
 
         orders.forEach(order => {
-            const time = `${order.createdAt.getHours()}:${order.createdAt.getMinutes() < 10 ? '0' : ''}${order.createdAt.getMinutes()}`;
+            const time = `${new Date(order.createdAt).getHours().toString().padStart(2, '0')}:${new Date(order.createdAt).getMinutes().toString().padStart(2, '0')}`;
             const itemCount = order.items.reduce((sum, i) => sum + i.quantity, 0);
 
             // Add page if near bottom
@@ -69,12 +92,24 @@ const generateDailyReport = async (req, res) => {
             }
 
             doc.text(time, 50, currentY);
-            doc.text(order.tableNumber, 150, currentY);
+            doc.text(String(order.tableNumber), 150, currentY);
             doc.text(`${itemCount} items`, 250, currentY);
             doc.text(`INR ${order.totalAmount.toFixed(2)}`, 450, currentY, { width: 90, align: 'right' });
             
             currentY += 20;
         });
+
+        // Bottom Grand Total Line & Row
+        doc.moveTo(50, currentY + 5).lineTo(540, currentY + 5).stroke();
+        currentY += 15;
+        if (currentY > 710) {
+            doc.addPage();
+            currentY = 50;
+        }
+        doc.font('Helvetica-Bold');
+        doc.text('TOTAL REVENUE', 50, currentY);
+        doc.text(`${totalItems} items`, 250, currentY);
+        doc.text(`INR ${totalRevenue.toFixed(2)}`, 450, currentY, { width: 90, align: 'right' });
 
         doc.end();
 
@@ -172,70 +207,199 @@ const generateMonthlyReport = async (req, res) => {
 };
 
 // @desc    Export Orders
-// @route   GET /api/reports/export?start=YYYY-MM-DD&end=YYYY-MM-DD&format=csv|excel
+// @route   GET /api/reports/export?start=YYYY-MM-DD&end=YYYY-MM-DD&format=pdf|csv|excel
 const exportOrders = async (req, res) => {
     try {
-        const format = req.query.format || 'csv';
-        const start = req.query.start ? new Date(req.query.start) : new Date(new Date().setHours(0,0,0,0));
-        const end = req.query.end ? new Date(new Date(req.query.end).setHours(23,59,59,999)) : new Date(new Date().setHours(23,59,59,999));
+        const format = (req.query.format || 'csv').toLowerCase();
+        const start = parseDateBoundary(req.query.start, false);
+        const end = parseDateBoundary(req.query.end || req.query.start, true);
 
         const orders = await Order.find({
-            createdAt: { $gte: start, $lte: end }
-        }).sort({ createdAt: -1 });
+            createdAt: { $gte: start, $lte: end },
+            status: { $ne: 'Cancelled' }
+        }).sort({ createdAt: 1 });
+
+        const totalRevenue = orders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+        const totalItems = orders.reduce((sum, order) => sum + (order.items?.reduce((iSum, i) => iSum + i.quantity, 0) || 0), 0);
+
+        const startDateStr = start.toLocaleDateString('en-CA');
+        const endDateStr = end.toLocaleDateString('en-CA');
+        const fileDateLabel = startDateStr === endDateStr ? startDateStr : `${startDateStr}_to_${endDateStr}`;
 
         // Flatten data for tabular formats
         const exportData = orders.map(order => ({
             OrderID: order._id.toString(),
-            Date: order.createdAt.toISOString().split('T')[0],
-            Time: `${order.createdAt.getHours()}:${order.createdAt.getMinutes() < 10 ? '0' : ''}${order.createdAt.getMinutes()}`,
-            Table: order.tableNumber,
+            Date: new Date(order.createdAt).toLocaleDateString('en-CA'),
+            Time: `${new Date(order.createdAt).getHours().toString().padStart(2, '0')}:${new Date(order.createdAt).getMinutes().toString().padStart(2, '0')}`,
+            Table: String(order.tableNumber),
             Status: order.status,
-            PaymentMode: order.paymentMode,
-            ItemsCount: order.items.reduce((sum, item) => sum + item.quantity, 0),
-            TotalAmount: order.totalAmount
+            PaymentMode: order.paymentMode || 'N/A',
+            ItemsCount: order.items ? order.items.reduce((sum, item) => sum + item.quantity, 0) : 0,
+            TotalAmount: Number(order.totalAmount.toFixed(2))
         }));
-
-        const dateStr = start.toISOString().split('T')[0];
 
         if (format === 'csv') {
             const fields = ['OrderID', 'Date', 'Time', 'Table', 'Status', 'PaymentMode', 'ItemsCount', 'TotalAmount'];
+            const summaryRow = {
+                OrderID: 'TOTAL SUMMARY',
+                Date: `${startDateStr} to ${endDateStr}`,
+                Time: '-',
+                Table: '-',
+                Status: `${orders.length} Orders`,
+                PaymentMode: '-',
+                ItemsCount: totalItems,
+                TotalAmount: Number(totalRevenue.toFixed(2))
+            };
             const json2csvParser = new Parser({ fields });
-            const csv = json2csvParser.parse(exportData);
+            const csv = json2csvParser.parse([...exportData, summaryRow]);
             
             res.header('Content-Type', 'text/csv');
-            res.attachment(`orders-export-${dateStr}.csv`);
+            res.attachment(`orders-report-${fileDateLabel}.csv`);
             return res.send(csv);
         } 
         
         if (format === 'excel') {
             const workbook = new ExcelJS.Workbook();
-            const worksheet = workbook.addWorksheet('Orders');
+            const worksheet = workbook.addWorksheet('Sales Report');
             
             worksheet.columns = [
-                { header: 'Order ID', key: 'OrderID', width: 25 },
-                { header: 'Date', key: 'Date', width: 15 },
+                { header: 'Order ID', key: 'OrderID', width: 26 },
+                { header: 'Date', key: 'Date', width: 14 },
                 { header: 'Time', key: 'Time', width: 10 },
                 { header: 'Table', key: 'Table', width: 10 },
-                { header: 'Status', key: 'Status', width: 15 },
-                { header: 'Payment Mode', key: 'PaymentMode', width: 15 },
-                { header: 'Items Count', key: 'ItemsCount', width: 12 },
-                { header: 'Total Amount (INR)', key: 'TotalAmount', width: 18 }
+                { header: 'Status', key: 'Status', width: 14 },
+                { header: 'Payment Mode', key: 'PaymentMode', width: 16 },
+                { header: 'Items Count', key: 'ItemsCount', width: 14 },
+                { header: 'Total Amount (INR)', key: 'TotalAmount', width: 20 }
             ];
 
-            // Make headers bold
-            worksheet.getRow(1).font = { bold: true };
+            // Make headers bold with styled background
+            const headerRow = worksheet.getRow(1);
+            headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+            headerRow.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FF5A724A' }
+            };
             
-            worksheet.addRows(exportData);
+            exportData.forEach(row => worksheet.addRow(row));
+
+            // Empty row spacer
+            worksheet.addRow([]);
+
+            // Grand Total Row
+            const totalRow = worksheet.addRow({
+                OrderID: 'TOTAL SUMMARY',
+                Date: `${startDateStr} to ${endDateStr}`,
+                Time: '',
+                Table: '',
+                Status: `${orders.length} Orders`,
+                PaymentMode: '',
+                ItemsCount: totalItems,
+                TotalAmount: Number(totalRevenue.toFixed(2))
+            });
+
+            totalRow.font = { bold: true };
+            totalRow.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FFE8F5E9' }
+            };
             
             res.header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-            res.attachment(`orders-export-${dateStr}.xlsx`);
+            res.attachment(`orders-report-${fileDateLabel}.xlsx`);
             
             await workbook.xlsx.write(res);
             res.end();
             return;
         }
 
-        res.status(400).json({ message: 'Invalid format requested. use csv or excel.' });
+        if (format === 'pdf') {
+            const doc = new PDFDocument({ margin: 50 });
+
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', `attachment; filename=orders-report-${fileDateLabel}.pdf`);
+            doc.pipe(res);
+
+            // Header
+            doc.fontSize(22).font('Helvetica-Bold').text('Herb and Spice', { align: 'center' });
+            doc.fontSize(12).font('Helvetica-Bold').text('Date-Wise Sales Audit Report', { align: 'center' });
+            doc.fontSize(10).font('Helvetica').text(`Date Range: ${startDateStr} to ${endDateStr}`, { align: 'center' });
+            doc.moveDown(1.5);
+
+            // Summary Statistics Box
+            doc.fontSize(12).font('Helvetica-Bold').text('Executive Summary');
+            doc.fontSize(10).font('Helvetica');
+            doc.text(`Total Orders: ${orders.length}`);
+            doc.text(`Total Items Sold: ${totalItems}`);
+            doc.text(`Total Revenue: INR ${totalRevenue.toFixed(2)}`);
+            doc.text(`Average Ticket Size: INR ${(orders.length ? (totalRevenue / orders.length) : 0).toFixed(2)}`);
+            doc.moveDown(1.5);
+
+            // Table Header
+            doc.fontSize(12).font('Helvetica-Bold').text('Order Breakdown');
+            doc.moveDown(0.5);
+
+            const tableTop = doc.y;
+            doc.fontSize(9).font('Helvetica-Bold');
+            doc.text('Date & Time', 50, tableTop);
+            doc.text('Table', 150, tableTop);
+            doc.text('Status / Payment', 220, tableTop);
+            doc.text('Items', 350, tableTop);
+            doc.text('Total (INR)', 450, tableTop, { width: 90, align: 'right' });
+
+            doc.moveTo(50, doc.y + 4).lineTo(540, doc.y + 4).stroke();
+            doc.moveDown(0.8);
+
+            doc.font('Helvetica');
+            let currentY = doc.y;
+
+            if (orders.length === 0) {
+                currentY += 10;
+                doc.text('No orders recorded within this date range.', 50, currentY);
+                currentY += 20;
+            } else {
+                orders.forEach(order => {
+                    const orderDate = new Date(order.createdAt).toLocaleDateString('en-CA');
+                    const orderTime = `${new Date(order.createdAt).getHours().toString().padStart(2, '0')}:${new Date(order.createdAt).getMinutes().toString().padStart(2, '0')}`;
+                    const itemCount = order.items ? order.items.reduce((sum, i) => sum + i.quantity, 0) : 0;
+                    const payment = order.paymentMode ? `${order.status} (${order.paymentMode})` : order.status;
+
+                    if (currentY > 700) {
+                        doc.addPage();
+                        currentY = 50;
+                    }
+
+                    doc.fontSize(8.5);
+                    doc.text(`${orderDate} ${orderTime}`, 50, currentY);
+                    doc.text(String(order.tableNumber), 150, currentY);
+                    doc.text(payment, 220, currentY, { width: 125 });
+                    doc.text(`${itemCount} items`, 350, currentY);
+                    doc.text(`INR ${order.totalAmount.toFixed(2)}`, 450, currentY, { width: 90, align: 'right' });
+
+                    currentY += 18;
+                });
+            }
+
+            // Bottom Grand Total Divider & Row
+            doc.moveTo(50, currentY + 4).lineTo(540, currentY + 4).stroke();
+            currentY += 12;
+
+            if (currentY > 710) {
+                doc.addPage();
+                currentY = 50;
+            }
+
+            doc.font('Helvetica-Bold').fontSize(10);
+            doc.text('GRAND TOTAL REVENUE', 50, currentY);
+            doc.text(`${totalItems} items`, 350, currentY);
+            doc.text(`INR ${totalRevenue.toFixed(2)}`, 450, currentY, { width: 90, align: 'right' });
+
+            doc.end();
+            return;
+        }
+
+        res.status(400).json({ message: 'Invalid format requested. Use pdf, csv, or excel.' });
 
     } catch (error) {
         console.error('Export Error:', error);

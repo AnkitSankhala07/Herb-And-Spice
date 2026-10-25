@@ -6,6 +6,7 @@ import {
 } from 'recharts';
 import { Download, FileText, FileSpreadsheet, DollarSign, TrendingUp, Users, Calendar, Sparkles, CalendarDays, CalendarRange, ShoppingCart } from 'lucide-react';
 import { api } from '../../services/api';
+import toast from 'react-hot-toast';
 import clsx from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -46,16 +47,24 @@ const Analytics = () => {
 
     const handleGenerateReport = async (type) => {
         setExportingType(type);
+        const toastId = toast.loading('Generating report...');
         try {
             let url = '';
             let ext = 'pdf';
             let mimeType = 'application/pdf';
+            let filename = '';
 
             if (type === 'daily') {
                 url = `/reports/daily?date=${exportStartDate}`;
+                ext = 'pdf';
+                mimeType = 'application/pdf';
+                filename = `herb-spice-daily-report-${exportStartDate}.pdf`;
             } else if (type === 'monthly') {
                 const d = new Date(exportStartDate);
                 url = `/reports/monthly?month=${d.getMonth() + 1}&year=${d.getFullYear()}`;
+                ext = 'pdf';
+                mimeType = 'application/pdf';
+                filename = `herb-spice-monthly-report-${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}.pdf`;
             } else {
                 url = `/reports/export?start=${exportStartDate}&end=${exportEndDate}&format=${exportFormat}`;
                 ext = exportFormat === 'excel' ? 'xlsx' : exportFormat;
@@ -64,21 +73,23 @@ const Analytics = () => {
                     : exportFormat === 'excel' 
                         ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
                         : 'application/pdf';
+                filename = `herb-spice-report-${exportStartDate}-to-${exportEndDate}.${ext}`;
             }
 
             const response = await api.get(url, { responseType: 'blob' });
             
-            const defaultFilename = `herb-spice-${type}-report.${ext}`;
             const urlObj = window.URL.createObjectURL(new Blob([response.data], { type: mimeType }));
             const link = document.createElement('a');
             link.href = urlObj;
-            link.setAttribute('download', defaultFilename);
+            link.setAttribute('download', filename);
             document.body.appendChild(link);
             link.click();
             link.parentNode.removeChild(link);
             window.URL.revokeObjectURL(urlObj);
+            toast.success('Report downloaded successfully!', { id: toastId });
         } catch (error) {
             console.error(`Failed to export ${type} report:`, error);
+            toast.error('Failed to export report. Please try again.', { id: toastId });
         } finally {
             setExportingType(null);
         }
