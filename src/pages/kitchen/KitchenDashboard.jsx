@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
-import { Clock, CheckCircle, ChefHat, AlertTriangle, History, ArrowLeft, Utensils } from 'lucide-react';
+import { Clock, CheckCircle, ChefHat, AlertTriangle, History, ArrowLeft, Utensils, RefreshCw } from 'lucide-react';
 import clsx from 'clsx';
 import { getKitchenOrders, updateOrderStatus, socket, api } from '../../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -13,6 +13,7 @@ const KitchenDashboard = () => {
     const [showHistory, setShowHistory] = useState(false);
     const [historyOrders, setHistoryOrders] = useState([]);
     const [historyLoading, setHistoryLoading] = useState(false);
+    const [historyHours, setHistoryHours] = useState(2);
 
     useEffect(() => {
         getKitchenOrders()
@@ -66,10 +67,10 @@ const KitchenDashboard = () => {
 
     const getElapsedTime = (orderTime) => Math.floor((currentTime - orderTime) / 60000) || 0;
 
-    const fetchHistory = async () => {
+    const fetchHistory = async (hours = historyHours) => {
         setHistoryLoading(true);
         try {
-            const { data } = await api.get('/orders?history=true');
+            const { data } = await api.get(`/orders?history=true&hours=${hours}`);
             setHistoryOrders(data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
         } catch (err) {
             console.error('Failed to fetch history', err);
@@ -80,7 +81,12 @@ const KitchenDashboard = () => {
 
     const handleShowHistory = () => {
         setShowHistory(true);
-        fetchHistory();
+        fetchHistory(historyHours);
+    };
+
+    const handleFilterChange = (hours) => {
+        setHistoryHours(hours);
+        fetchHistory(hours);
     };
 
     return (
@@ -139,14 +145,80 @@ const KitchenDashboard = () => {
             {/* HISTORY VIEW */}
             {showHistory ? (
                 <div className="bg-white border border-[#EBEBEB] rounded-3xl shadow-sm overflow-hidden">
-                    <div className="px-6 py-5 border-b border-[#EBEBEB] bg-[#F8F8F8] flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <History size={20} className="text-[#5A724A]" />
-                            <h2 className="font-bold text-lg text-[#222222]">Complete Order History</h2>
+                    <div className="px-6 py-5 border-b border-[#EBEBEB] bg-[#F8F8F8] flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-2xl bg-[#5A724A]/10 text-[#5A724A] flex items-center justify-center shadow-xs">
+                                <History size={20} />
+                            </div>
+                            <div>
+                                <div className="flex items-center gap-2">
+                                    <h2 className="font-bold text-lg text-[#222222]">Kitchen Order History</h2>
+                                    <span className="text-[10px] font-bold uppercase tracking-wider bg-[#5A724A] text-white px-2.5 py-0.5 rounded-full">
+                                        Past {historyHours === 24 ? "Today" : `${historyHours} Hours`}
+                                    </span>
+                                </div>
+                                <p className="text-xs text-[#818181] mt-0.5">Tickets processed in the kitchen within the selected timeframe.</p>
+                            </div>
                         </div>
-                        <span className="text-xs text-[#818181] font-bold bg-white px-3 py-1 rounded-full border border-[#EBEBEB]">
-                            {historyOrders.length} orders
-                        </span>
+
+                        <div className="flex items-center gap-2">
+                            {/* Filter Pills */}
+                            <div className="flex bg-white p-1 rounded-full border border-[#EBEBEB] text-xs font-bold shadow-xs">
+                                {[
+                                    { label: 'Past 2 Hours', value: 2 },
+                                    { label: 'Past 4 Hours', value: 4 },
+                                    { label: 'Today (24h)', value: 24 }
+                                ].map(option => (
+                                    <button
+                                        key={option.value}
+                                        onClick={() => handleFilterChange(option.value)}
+                                        className={clsx(
+                                            "px-3.5 py-1.5 rounded-full transition-all text-xs font-semibold",
+                                            historyHours === option.value
+                                                ? "bg-[#5A724A] text-white shadow-xs font-bold"
+                                                : "text-[#818181] hover:text-[#222222]"
+                                        )}
+                                    >
+                                        {option.label}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <button
+                                onClick={() => fetchHistory(historyHours)}
+                                disabled={historyLoading}
+                                title="Refresh History"
+                                className="p-2.5 rounded-full border border-[#EBEBEB] bg-white hover:bg-[#F8F8F8] text-[#5A724A] transition-all shadow-xs"
+                            >
+                                <RefreshCw size={15} className={clsx(historyLoading && "animate-spin")} />
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Stats bar */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-4 bg-[#FAFAFA] border-b border-[#EBEBEB]">
+                        <div className="bg-white p-3.5 rounded-2xl border border-[#EBEBEB]">
+                            <span className="text-[10px] uppercase font-bold text-[#818181] tracking-wider block">Total Orders</span>
+                            <span className="text-xl font-bold font-mono text-[#222222]">{historyOrders.length}</span>
+                        </div>
+                        <div className="bg-white p-3.5 rounded-2xl border border-[#EBEBEB]">
+                            <span className="text-[10px] uppercase font-bold text-[#818181] tracking-wider block">Served / Paid</span>
+                            <span className="text-xl font-bold font-mono text-[#5A724A]">
+                                {historyOrders.filter(o => o.status === 'Served' || o.status === 'Paid').length}
+                            </span>
+                        </div>
+                        <div className="bg-white p-3.5 rounded-2xl border border-[#EBEBEB]">
+                            <span className="text-[10px] uppercase font-bold text-[#818181] tracking-wider block">Ready / In Prep</span>
+                            <span className="text-xl font-bold font-mono text-[#E2A34A]">
+                                {historyOrders.filter(o => o.status === 'Ready' || o.status === 'Preparing').length}
+                            </span>
+                        </div>
+                        <div className="bg-white p-3.5 rounded-2xl border border-[#EBEBEB]">
+                            <span className="text-[10px] uppercase font-bold text-[#818181] tracking-wider block">Dishes Cooked</span>
+                            <span className="text-xl font-bold font-mono text-[#222222]">
+                                {historyOrders.reduce((sum, o) => sum + (o.items?.reduce((s, i) => s + (i.quantity || 1), 0) || 0), 0)}
+                            </span>
+                        </div>
                     </div>
 
                     {historyLoading ? (

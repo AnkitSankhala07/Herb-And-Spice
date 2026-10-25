@@ -112,10 +112,27 @@ const createOrder = async (req, res) => {
     }
 };
 
-// @desc    Get active orders only (history disabled)
+// @desc    Get active orders (or past 2 hours history when history=true)
 // @route   GET /api/orders
 const getOrders = async (req, res) => {
     try {
+        const { history, hours } = req.query;
+
+        if (history === 'true') {
+            // Default history to past 2 hours for kitchen operations
+            const historyHours = parseFloat(hours) || 2;
+            const cutoffTime = new Date(Date.now() - historyHours * 60 * 60 * 1000);
+
+            const historyOrders = await Order.find({
+                $or: [
+                    { createdAt: { $gte: cutoffTime } },
+                    { updatedAt: { $gte: cutoffTime } }
+                ]
+            }).sort({ createdAt: -1 });
+
+            return res.json(historyOrders);
+        }
+
         const todayStart = new Date();
         todayStart.setHours(0, 0, 0, 0);
 
