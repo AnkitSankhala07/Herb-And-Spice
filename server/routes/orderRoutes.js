@@ -1,5 +1,5 @@
 const express = require('express');
-const { createOrder, getOrders, updateOrderStatus, markTablePaid } = require('../controllers/orderController');
+const { createOrder, getOrders, updateOrderStatus, markTablePaid, getActiveTableOrders } = require('../controllers/orderController');
 const { protect, adminOnly, authorize } = require('../middleware/authMiddleware');
 
 const router = express.Router();
@@ -8,6 +8,9 @@ const router = express.Router();
 router.route('/')
     .post(createOrder)
     .get(protect, authorize('admin', 'kitchen', 'waiter'), getOrders);
+
+// Guest / Customer active table bill and order summary
+router.get('/table/:tableId/active', getActiveTableOrders);
 
 // Kitchen & Staff can update order status
 router.route('/:id/status')

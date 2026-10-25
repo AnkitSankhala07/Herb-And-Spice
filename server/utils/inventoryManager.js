@@ -65,9 +65,31 @@ const updateMenuItemDetails = async (menuItemOrId) => {
  * Should be called after massive inventory updates or at startup.
  */
 const syncAllMenuItems = async () => {
-    const menuItems = await MenuItem.find({});
-    for (const item of menuItems) {
-        await updateMenuItemDetails(item);
+    try {
+        const [menuItems, inventoryList] = await Promise.all([
+            MenuItem.find({}),
+            Inventory.find({})
+        ]);
+        const invMap = new Map(inventoryList.map(inv => [inv._id.toString(), inv]));
+
+        for (const item of menuItems) {
+            if (!item.ingredients || item.ingredients.length === 0) continue;
+            let available = true;
+            for (const ing of item.ingredients) {
+                const inv = invMap.get(ing.ingredientId?.toString());
+                if (!inv || inv.quantity < (ing.quantityRequired || 1)) {
+                    available = false;
+                    break;
+                }
+            }
+            if (item.isAvailable !== available) {
+                item.isAvailable = available;
+                await item.save();
+                console.log(`[InventoryManager] Auto-updated ${item.name} availability to ${available}`);
+            }
+        }
+    } catch (err) {
+        console.error('[InventoryManager] syncAllMenuItems error:', err.message);
     }
 };
 
@@ -78,53 +100,70 @@ const syncAllMenuItems = async () => {
  */
 const deductInventoryForOrder = async (orderItems) => {
     // 1. HARD SAFETY CHECK & ATOMIC DEDUCTION
-    // In a high-concurrency environment, checking then updating is unsafe.
-    // We attempt to deduct immediately. If any deduction fails, we must ROLLBACK.
-
     const deductedOperations = []; // To track for rollback
+    const ingredientDeductions = new Map(); // ingredientId -> { totalDeduct, itemName }
 
-    try {
-        for (const item of orderItems) {
-            let menuItem;
+    for (const item of orderItems) {
+        let ingredients = item.ingredients;
+        let itemName = item.name;
+
+        if (!ingredients) {
             const itemId = item.menuItemId || item.menuItem;
+            let menuItem = null;
             if (itemId && mongoose.Types.ObjectId.isValid(itemId)) {
                 menuItem = await MenuItem.findById(itemId);
             } else if (item.name) {
                 menuItem = await MenuItem.findOne({ name: item.name });
             }
-
-            if (menuItem && menuItem.ingredients) {
-                for (const ing of menuItem.ingredients) {
-                    const totalDeduct = ing.quantityRequired * (item.quantity || 1);
-
-                    // ATOMIC UPDATE: Only update if we have enough quantity
-                    const result = await Inventory.findOneAndUpdate(
-                        { _id: ing.ingredientId, quantity: { $gte: totalDeduct } },
-                        { $inc: { quantity: -totalDeduct } },
-                        { new: true }
-                    );
-
-                    if (!result) {
-                        throw new Error(`Insufficient stock for ingredient ID: ${ing.ingredientId} (Item: ${menuItem.name})`);
-                    }
-
-                    deductedOperations.push({ id: ing.ingredientId, amount: totalDeduct });
-                }
+            if (menuItem) {
+                ingredients = menuItem.ingredients;
+                itemName = menuItem.name;
             }
         }
+
+        if (ingredients && ingredients.length > 0) {
+            for (const ing of ingredients) {
+                const idStr = ing.ingredientId?.toString();
+                if (!idStr) continue;
+                const totalDeduct = (ing.quantityRequired || 1) * (item.quantity || 1);
+                const current = ingredientDeductions.get(idStr) || { totalDeduct: 0, itemName };
+                current.totalDeduct += totalDeduct;
+                ingredientDeductions.set(idStr, current);
+            }
+        }
+    }
+
+    try {
+        // Execute atomic deductions concurrently in parallel
+        await Promise.all(
+            Array.from(ingredientDeductions.entries()).map(async ([ingredientId, { totalDeduct, itemName }]) => {
+                const result = await Inventory.findOneAndUpdate(
+                    { _id: ingredientId, quantity: { $gte: totalDeduct } },
+                    { $inc: { quantity: -totalDeduct } },
+                    { new: true }
+                );
+
+                if (!result) {
+                    throw new Error(`Insufficient stock for ingredient ID: ${ingredientId} (Item: ${itemName})`);
+                }
+
+                deductedOperations.push({ id: ingredientId, amount: totalDeduct });
+            })
+        );
     } catch (error) {
         // ROLLBACK IF FAILURE
         console.error("Inventory deduction failed, rolling back...", error.message);
-        for (const op of deductedOperations) {
-            await Inventory.findByIdAndUpdate(op.id, { $inc: { quantity: op.amount } });
-        }
+        await Promise.all(
+            deductedOperations.map(op => Inventory.findByIdAndUpdate(op.id, { $inc: { quantity: op.amount } }))
+        );
         throw new Error("Insufficient stock to complete order. Please try again.");
     }
 
-    // 2. TRIGGER AUTO-DISABLE CHECK (Optimistic)
-    // We don't await this to keep response fast, or we await if we want strict consistency.
-    // For critical business logic, let's await it.
-    await syncAllMenuItems();
+    // 2. TRIGGER AUTO-DISABLE CHECK ASYNCHRONOUSLY
+    // Executed via setImmediate so client receives instant order confirmation without blocking on DB iteration
+    setImmediate(() => {
+        syncAllMenuItems().catch(err => console.error('[InventoryManager] async sync error:', err.message));
+    });
 };
 
 module.exports = {

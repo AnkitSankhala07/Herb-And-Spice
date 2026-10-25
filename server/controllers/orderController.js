@@ -11,7 +11,8 @@ const { deductInventoryForOrder } = require('../utils/inventoryManager');
 const createOrder = async (req, res) => {
     const { tableNumber, items, tip } = req.body || {};
 
-    const tableNum = parseInt(tableNumber, 10);
+    const rawTableNum = tableNumber !== undefined ? tableNumber : req.body?.tableId;
+    const tableNum = parseInt(rawTableNum, 10);
     if (isNaN(tableNum) || tableNum <= 0) {
         return res.status(400).json({ message: 'Valid positive table number is required' });
     }
@@ -53,7 +54,8 @@ const createOrder = async (req, res) => {
                 menuItem: menuItemDoc._id.toString(),
                 name: menuItemDoc.name,
                 quantity,
-                price
+                price,
+                ingredients: menuItemDoc.ingredients || []
             });
 
             subtotal += price * quantity;
@@ -136,8 +138,16 @@ const updateOrderStatus = async (req, res) => {
     const { status } = req.body;
     const { id } = req.params;
 
-    // In real auth, we'd get this from req.user
-    const currentRole = 'Kitchen';
+    const validStatuses = ['Pending', 'Preparing', 'Ready', 'Served', 'Paid', 'Cancelled'];
+    if (!status || !validStatuses.includes(status)) {
+        return res.status(400).json({ 
+            message: `Invalid status '${status}'. Must be one of: ${validStatuses.join(', ')}` 
+        });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ message: 'Invalid order ID format' });
+    }
 
     try {
         const order = await Order.findById(id);
@@ -256,4 +266,60 @@ const markTablePaid = async (req, res) => {
     }
 };
 
-module.exports = { createOrder, getOrders, updateOrderStatus, markTablePaid };
+// @desc    Get active orders & current bill summary for a customer table
+// @route   GET /api/orders/table/:tableId/active
+const getActiveTableOrders = async (req, res) => {
+    const { tableId } = req.params;
+    const tableNum = parseInt(tableId, 10);
+    if (isNaN(tableNum) || tableNum <= 0) {
+        return res.status(400).json({ message: 'Valid positive table number is required' });
+    }
+
+    try {
+        const orders = await Order.find({
+            tableNumber: tableNum,
+            status: { $nin: ['Paid', 'Cancelled'] }
+        }).sort({ createdAt: -1 });
+
+        const items = [];
+        let subtotal = 0;
+        let tips = 0;
+        let recordedTotal = 0;
+
+        orders.forEach(order => {
+            tips += Number(order.tip) || 0;
+            recordedTotal += Number(order.totalAmount) || 0;
+            order.items.forEach(item => {
+                const qty = Number(item.quantity) || 1;
+                const price = Number(item.price) || 0;
+                items.push({
+                    name: item.name,
+                    quantity: qty,
+                    price: price,
+                    itemTotal: price * qty
+                });
+                subtotal += price * qty;
+            });
+        });
+
+        const tax = subtotal * 0.05;
+        const finalTotal = recordedTotal > 0 ? recordedTotal : (subtotal + tax + tips);
+
+        res.json({
+            tableId: tableNum,
+            hasActiveOrders: orders.length > 0,
+            ordersCount: orders.length,
+            items,
+            subtotal: Number(subtotal.toFixed(2)),
+            tax: Number(tax.toFixed(2)),
+            tip: Number(tips.toFixed(2)),
+            totalAmount: Number(finalTotal.toFixed(2)),
+            status: orders.length > 0 ? orders[0].status : 'None'
+        });
+    } catch (error) {
+        console.error(`[Order] Failed to get active orders for table ${tableId}:`, error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
+module.exports = { createOrder, getOrders, updateOrderStatus, markTablePaid, getActiveTableOrders };

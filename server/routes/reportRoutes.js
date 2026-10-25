@@ -8,8 +8,8 @@ router.get('/daily', protect, adminOnly, generateDailyReport);
 router.get('/monthly', protect, adminOnly, generateMonthlyReport);
 router.get('/export', protect, adminOnly, exportOrders);
 
-// Staff billing generation (Admin & Waiter)
-router.get('/bill/:id', protect, authorize('admin', 'waiter'), generateCustomerBill);
-router.get('/bill/table/:tableId', protect, authorize('admin', 'waiter'), generateTableBill);
+// Billing generation (Accessible to Customer table & Staff)
+router.get('/bill/:id', generateCustomerBill);
+router.get('/bill/table/:tableId', generateTableBill);
 
 module.exports = router;

@@ -5,14 +5,14 @@ import { OfflineBanner } from '../components/ui/OfflineBanner';
 
 export default function DashboardLayout({ role = 'admin' }) {
     const location = useLocation();
-    const [user, setUser] = useState(null);
-
-    useEffect(() => {
-        const userData = localStorage.getItem('user');
-        if (userData) {
-            setUser(JSON.parse(userData));
+    const [user, setUser] = useState(() => {
+        try {
+            const userData = localStorage.getItem('user');
+            return userData ? JSON.parse(userData) : null;
+        } catch {
+            return null;
         }
-    }, []);
+    });
 
     const links = role === 'admin' ? [
         { name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },

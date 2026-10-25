@@ -28,7 +28,7 @@ const generateDailyReport = async (req, res) => {
         doc.pipe(res);
 
         // Header
-        doc.fontSize(24).font('Helvetica-Bold').text('AKXTON Daily Report', { align: 'center' });
+        doc.fontSize(24).font('Helvetica-Bold').text('Herb and Spice', { align: 'center' });
         doc.fontSize(12).font('Helvetica').text(`Date: ${startOfDay.toISOString().split('T')[0]}`, { align: 'center' });
         doc.moveDown(2);
 
@@ -243,6 +243,21 @@ const exportOrders = async (req, res) => {
     }
 };
 
+// Helper for neat receipt table rows
+const drawReceiptRow = (doc, label, value, isBold = false, fontSize = 9) => {
+    const y = doc.y;
+    doc.font(isBold ? 'Helvetica-Bold' : 'Helvetica').fontSize(fontSize);
+    doc.text(label, 25, y, { width: 145, align: 'left' });
+    doc.text(value, 170, y, { width: 105, align: 'right' });
+    doc.y = y + fontSize + 4;
+};
+
+const drawDivider = (doc) => {
+    const y = doc.y + 2;
+    doc.moveTo(25, y).lineTo(275, y).strokeColor('#D1D5DB').lineWidth(0.5).stroke();
+    doc.y = y + 6;
+};
+
 // @desc    Generate Single Order Customer Bill (PDF)
 // @route   GET /api/reports/bill/:id
 const generateCustomerBill = async (req, res) => {
@@ -252,72 +267,55 @@ const generateCustomerBill = async (req, res) => {
             return res.status(404).json({ message: 'Order not found' });
         }
 
-        const doc = new PDFDocument({ margin: 40, size: [300, 600] }); // Receipt size format
+        const doc = new PDFDocument({ margin: 25, size: [300, 600] });
         
         res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename=bill-${order.tableNumber}-${order._id.toString().slice(-6)}.pdf`);
-        
+        res.setHeader('Content-Disposition', `attachment; filename=bill-table-${order.tableNumber}-${order._id.toString().slice(-6)}.pdf`);
         doc.pipe(res);
 
         // Header
-        doc.fontSize(20).font('Helvetica-Bold').text('AKXTON', { align: 'center' });
-        doc.fontSize(10).font('Helvetica').text('Smart Restaurant POS', { align: 'center' });
-        doc.moveDown(0.5);
-        doc.text('----------------------------------------------------', { align: 'center' });
-        
-        // Meta data
-        doc.moveDown(0.5);
-        doc.font('Helvetica-Bold').text(`Table: ${order.tableNumber}`);
-        doc.font('Helvetica').text(`Order ID: #${order._id.toString().slice(-6).toUpperCase()}`);
-        doc.text(`Date: ${order.createdAt.toLocaleString()}`);
-        doc.moveDown(0.5);
-        doc.text('----------------------------------------------------', { align: 'center' });
-        doc.moveDown(0.5);
+        doc.fontSize(18).font('Helvetica-Bold').text('Herb & Spice', { align: 'center' });
+        doc.fontSize(9).font('Helvetica').text('Artisan Dining Experience', { align: 'center' });
+        doc.moveDown(0.3);
+        drawDivider(doc);
 
-        // Items logic
-        doc.font('Helvetica-Bold');
-        doc.text('Item', 40, doc.y, { continued: true });
-        doc.text('Qty', 160, doc.y, { continued: true });
-        doc.text('Amount', 220, doc.y);
-        doc.moveDown(0.5);
-        
-        doc.font('Helvetica');
+        // Metadata
+        drawReceiptRow(doc, `Table: ${order.tableNumber}`, `Order: #${order._id.toString().slice(-6).toUpperCase()}`);
+        drawReceiptRow(doc, 'Date:', order.createdAt ? order.createdAt.toLocaleString() : new Date().toLocaleString());
+        drawDivider(doc);
+
+        // Items Header
+        drawReceiptRow(doc, 'ITEM', 'AMOUNT', true, 9);
+        doc.y += 2;
+
+        let subtotal = 0;
         order.items.forEach(item => {
-            const currentY = doc.y;
-            // truncate item name to fit receipt
-            doc.text(item.name.substring(0, 15), 40, currentY, { width: 110 });
-            doc.text(item.quantity.toString(), 160, currentY);
-            doc.text(`INR ${item.price * item.quantity}`, 220, currentY, { align: 'right', width: 40 });
-            doc.moveDown(0.5);
+            const qty = Number(item.quantity) || 1;
+            const price = Number(item.price) || 0;
+            const itemTotal = price * qty;
+            subtotal += itemTotal;
+            drawReceiptRow(doc, `${item.name.substring(0, 18)} x ${qty}`, `INR ${itemTotal.toFixed(2)}`, false, 9);
         });
 
-        doc.moveDown(0.5);
-        doc.text('----------------------------------------------------', { align: 'center' });
-        doc.moveDown(0.5);
+        drawDivider(doc);
 
-        // Totals
-        const taxRate = 0.05; // 5% example
-        const subtotal = order.totalAmount / (1 + taxRate);
-        const tax = order.totalAmount - subtotal;
-        
-        doc.font('Helvetica');
-        doc.text(`Subtotal:`, 40, doc.y, { continued: true });
-        doc.text(`INR ${subtotal.toFixed(2)}`, 200, doc.y, { align: 'right', width: 60 });
-        doc.moveDown(0.2);
-        
-        doc.text(`Tax (5%):`, 40, doc.y, { continued: true });
-        doc.text(`INR ${tax.toFixed(2)}`, 200, doc.y, { align: 'right', width: 60 });
-        doc.moveDown(0.2);
+        const tax = subtotal * 0.05;
+        const tip = Number(order.tip) || 0;
+        const grandTotal = Number(order.totalAmount) || (subtotal + tax + tip);
 
-        doc.font('Helvetica-Bold');
-        doc.fontSize(14);
-        doc.text(`TOTAL:`, 40, doc.y, { continued: true });
-        doc.text(`INR ${order.totalAmount.toFixed(2)}`, 160, doc.y, { align: 'right', width: 100 });
-        
-        doc.moveDown(1);
-        doc.fontSize(10).font('Helvetica').text('Thank you for dining with us!', { align: 'center' });
-        doc.text('Powered by AKXTON', { align: 'center' });
-        
+        drawReceiptRow(doc, 'Subtotal:', `INR ${subtotal.toFixed(2)}`);
+        drawReceiptRow(doc, 'GST (5%):', `INR ${tax.toFixed(2)}`);
+        if (tip > 0) {
+            drawReceiptRow(doc, 'Tip:', `INR ${tip.toFixed(2)}`);
+        }
+        doc.y += 3;
+        drawReceiptRow(doc, 'TOTAL AMOUNT:', `INR ${grandTotal.toFixed(2)}`, true, 12);
+        drawDivider(doc);
+
+        doc.moveDown(0.5);
+        doc.fontSize(8.5).font('Helvetica').text('Thank you for dining with us!', { align: 'center' });
+        doc.fontSize(8).font('Helvetica').text('Herb & Spice Operating System', { align: 'center' });
+
         doc.end();
 
     } catch (error) {
@@ -330,85 +328,70 @@ const generateCustomerBill = async (req, res) => {
 // @route   GET /api/reports/bill/table/:tableId
 const generateTableBill = async (req, res) => {
     try {
-        const tableId = req.params.tableId;
+        const tableId = parseInt(req.params.tableId, 10);
         const orders = await Order.find({
             tableNumber: tableId,
             status: { $nin: ['Paid', 'Cancelled'] }
         });
 
-        if (orders.length === 0) {
+        if (!orders || orders.length === 0) {
             return res.status(404).json({ message: 'No active orders found for this table' });
         }
 
-        const doc = new PDFDocument({ margin: 40, size: [300, 600] });
+        const doc = new PDFDocument({ margin: 25, size: [300, 600] });
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename=table-${tableId}-bill.pdf`);
         doc.pipe(res);
 
         // Header
-        doc.fontSize(20).font('Helvetica-Bold').text('AKXTON', { align: 'center' });
-        doc.fontSize(10).font('Helvetica').text('Smart Restaurant POS', { align: 'center' });
-        doc.moveDown(0.5);
-        doc.text('----------------------------------------------------', { align: 'center' });
-        
-        doc.moveDown(0.5);
-        doc.font('Helvetica-Bold').text(`Table: ${tableId}`);
-        doc.font('Helvetica').text(`Generated: ${new Date().toLocaleString()}`);
-        doc.moveDown(0.5);
-        doc.text('----------------------------------------------------', { align: 'center' });
-        doc.moveDown(0.5);
+        doc.fontSize(18).font('Helvetica-Bold').text('Herb & Spice', { align: 'center' });
+        doc.fontSize(9).font('Helvetica').text('Artisan Dining Experience', { align: 'center' });
+        doc.moveDown(0.3);
+        drawDivider(doc);
 
-        // Map all items from all orders into an aggregated list
-        const allItems = [];
-        orders.forEach(o => {
-            o.items.forEach(i => allItems.push(i));
-        });
+        // Metadata
+        drawReceiptRow(doc, `Table: ${tableId}`, `Orders: ${orders.length}`);
+        drawReceiptRow(doc, 'Generated:', new Date().toLocaleString());
+        drawDivider(doc);
 
-        doc.font('Helvetica-Bold');
-        doc.text('Item', 40, doc.y, { continued: true });
-        doc.text('Qty', 160, doc.y, { continued: true });
-        doc.text('Amount', 220, doc.y);
-        doc.moveDown(0.5);
-        
-        doc.font('Helvetica');
+        // Items Header
+        drawReceiptRow(doc, 'ITEM', 'AMOUNT', true, 9);
+        doc.y += 2;
+
         let rawTotal = 0;
-        allItems.forEach(item => {
-            const currentY = doc.y;
-            const itemTotal = item.price * item.quantity;
-            rawTotal += itemTotal;
-            doc.text(item.name.substring(0, 15), 40, currentY, { width: 110 });
-            doc.text(item.quantity.toString(), 160, currentY);
-            doc.text(`INR ${itemTotal}`, 220, currentY, { align: 'right', width: 40 });
-            doc.moveDown(0.5);
+        let totalTips = 0;
+        let totalAmountRecorded = 0;
+
+        orders.forEach(o => {
+            totalTips += Number(o.tip) || 0;
+            totalAmountRecorded += Number(o.totalAmount) || 0;
+            o.items.forEach(item => {
+                const qty = Number(item.quantity) || 1;
+                const price = Number(item.price) || 0;
+                const itemTotal = price * qty;
+                rawTotal += itemTotal;
+                drawReceiptRow(doc, `${item.name.substring(0, 18)} x ${qty}`, `INR ${itemTotal.toFixed(2)}`, false, 9);
+            });
         });
 
-        doc.moveDown(0.5);
-        doc.text('----------------------------------------------------', { align: 'center' });
-        doc.moveDown(0.5);
+        drawDivider(doc);
 
-        // Totals
-        const taxRate = 0.05; // 5%
-        const tax = rawTotal * taxRate;
-        const grandTotal = rawTotal + tax; // Just standardizing
-        
-        doc.font('Helvetica');
-        doc.text(`Subtotal:`, 40, doc.y, { continued: true });
-        doc.text(`INR ${rawTotal.toFixed(2)}`, 200, doc.y, { align: 'right', width: 60 });
-        doc.moveDown(0.2);
-        
-        doc.text(`GST (5%):`, 40, doc.y, { continued: true });
-        doc.text(`INR ${tax.toFixed(2)}`, 200, doc.y, { align: 'right', width: 60 });
-        doc.moveDown(0.2);
+        const tax = rawTotal * 0.05;
+        const grandTotal = totalAmountRecorded > 0 ? totalAmountRecorded : (rawTotal + tax + totalTips);
 
-        doc.font('Helvetica-Bold');
-        doc.fontSize(14);
-        doc.text(`TOTAL:`, 40, doc.y, { continued: true });
-        doc.text(`INR ${grandTotal.toFixed(2)}`, 160, doc.y, { align: 'right', width: 100 });
-        
-        doc.moveDown(1);
-        doc.fontSize(10).font('Helvetica').text('Thank you for dining with us!', { align: 'center' });
-        doc.text('Powered by AKXTON', { align: 'center' });
-        
+        drawReceiptRow(doc, 'Subtotal:', `INR ${rawTotal.toFixed(2)}`);
+        drawReceiptRow(doc, 'GST (5%):', `INR ${tax.toFixed(2)}`);
+        if (totalTips > 0) {
+            drawReceiptRow(doc, 'Tips:', `INR ${totalTips.toFixed(2)}`);
+        }
+        doc.y += 3;
+        drawReceiptRow(doc, 'TOTAL AMOUNT:', `INR ${grandTotal.toFixed(2)}`, true, 12);
+        drawDivider(doc);
+
+        doc.moveDown(0.5);
+        doc.fontSize(8.5).font('Helvetica').text('Thank you for dining with us!', { align: 'center' });
+        doc.fontSize(8).font('Helvetica').text('Herb & Spice Operating System', { align: 'center' });
+
         doc.end();
 
     } catch (error) {
