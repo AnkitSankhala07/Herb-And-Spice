@@ -1,12 +1,10 @@
-import { Outlet, Link, useLocation, Navigate, useNavigate } from 'react-router-dom';
+import { Outlet, Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, ClipboardList, BarChart, LogOut, ShoppingCart, UtensilsCrossed, QrCode, BrainCircuit, User } from 'lucide-react';
 import { useState } from 'react';
 import { OfflineBanner } from '../components/ui/OfflineBanner';
-import toast from 'react-hot-toast';
 
 export default function DashboardLayout({ role = 'admin' }) {
     const location = useLocation();
-    const navigate = useNavigate();
     const [user] = useState(() => {
         try {
             const userData = localStorage.getItem('user');
@@ -15,28 +13,6 @@ export default function DashboardLayout({ role = 'admin' }) {
             return null;
         }
     });
-
-    const token = localStorage.getItem('token');
-
-    // 1. Authentication Guard: Must be logged in
-    if (!token || !user) {
-        return <Navigate to={`/${role}/login`} state={{ from: location }} replace />;
-    }
-
-    // 2. Role-based Authorization Guard
-    const userRole = (user.role || '').toLowerCase();
-    const targetRole = role.toLowerCase();
-
-    if (userRole !== targetRole && userRole !== 'admin') {
-        return <Navigate to={`/${userRole}/dashboard`} replace />;
-    }
-
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        toast.success('Logged out successfully');
-        navigate(`/${role}/login`, { replace: true });
-    };
 
     const links = role === 'admin' ? [
         { name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
@@ -120,11 +96,11 @@ export default function DashboardLayout({ role = 'admin' }) {
                 </div>
 
                 <button
-                    onClick={handleLogout}
-                    className="flex items-center gap-2.5 text-[#818181] hover:text-red-600 transition-colors px-3 py-2 hover:bg-red-50 rounded-xl text-xs font-semibold cursor-pointer w-full"
+                    onClick={() => window.location.href = '/'}
+                    className="flex items-center gap-2.5 text-[#818181] hover:text-red-600 transition-colors px-3 py-2 hover:bg-red-50 rounded-xl text-xs font-semibold"
                 >
                     <LogOut size={16} />
-                    <span>Logout ({user?.name || 'User'})</span>
+                    <span>Exit Portal</span>
                 </button>
             </aside>
 
@@ -143,16 +119,7 @@ export default function DashboardLayout({ role = 'admin' }) {
                                 {user && <p className="text-[10px] text-[#818181]">{user.name} • {user.role}</p>}
                             </div>
                         </div>
-                        <div className="flex items-center gap-2.5">
-                            <div className="w-2 h-2 rounded-full bg-[#5A724A] animate-pulse" />
-                            <button
-                                onClick={handleLogout}
-                                className="p-1.5 text-[#818181] hover:text-red-600 active:scale-95 transition-all rounded-full hover:bg-red-50"
-                                title="Logout"
-                            >
-                                <LogOut size={16} />
-                            </button>
-                        </div>
+                        <div className="w-2 h-2 rounded-full bg-[#5A724A] animate-pulse" />
                     </header>
 
                     <Outlet />

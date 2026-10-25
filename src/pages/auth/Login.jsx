@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Lock, User, ChefHat, LayoutDashboard, Shield, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '../../components/ui/Button';
@@ -14,27 +14,6 @@ const Login = ({ role: roleProp }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const navigate = useNavigate();
-    const location = useLocation();
-
-    // If user is already authenticated with the required role, skip login
-    useEffect(() => {
-        const token = localStorage.getItem('token');
-        const user = (() => {
-            try {
-                return JSON.parse(localStorage.getItem('user'));
-            } catch {
-                return null;
-            }
-        })();
-
-        if (token && user) {
-            const userRole = (user.role || '').toLowerCase();
-            if (userRole === role || userRole === 'admin') {
-                const destination = location.state?.from?.pathname || `/${userRole}/dashboard`;
-                navigate(destination, { replace: true });
-            }
-        }
-    }, [role, navigate, location]);
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -65,22 +44,15 @@ const Login = ({ role: roleProp }) => {
             localStorage.setItem('token', response.token);
             toast.success(`Welcome, ${response.name}!`);
 
-            // If user originally tried to access a specific URL (e.g. /admin/tables), redirect back there
-            const fromPath = location.state?.from?.pathname;
-            if (fromPath) {
-                navigate(fromPath, { replace: true });
-                return;
-            }
-
-            // Otherwise redirect based on role
+            // Redirect based on role
             if (response.role === 'kitchen') {
-                navigate('/kitchen/dashboard', { replace: true });
+                navigate('/kitchen/dashboard');
             } else if (response.role === 'waiter') {
-                navigate('/waiter/dashboard', { replace: true });
+                navigate('/waiter/dashboard');
             } else if (response.role === 'admin') {
-                navigate('/admin/dashboard', { replace: true });
+                navigate('/admin/dashboard');
             } else {
-                navigate('/table', { replace: true });
+                navigate('/table');
             }
         } catch (err) {
             console.error('Login error:', err);
