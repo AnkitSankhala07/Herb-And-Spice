@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { api, socket } from '../../services/api';
 import { Card } from '../../components/ui/Card';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle2, Clock, ChefHat, Package, IndianRupee, Eye, Download } from 'lucide-react';
+import { CheckCircle2, Clock, ChefHat, Package, IndianRupee, Eye, Download, RefreshCw } from 'lucide-react';
 import clsx from 'clsx';
 import { Modal } from '../../components/ui/Modal';
 import toast from 'react-hot-toast';
@@ -20,21 +20,34 @@ const AdminOrders = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [isDownloadingBill, setIsDownloadingBill] = useState(false);
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
-    const fetchOrders = async () => {
-        setIsLoading(true);
+    const fetchOrders = async (showLoading = true) => {
+        if (showLoading) setIsLoading(true);
         try {
             const res = await api.get('/orders');
             setOrders(res.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
         } catch (error) {
             console.error('Failed to fetch orders', error);
         } finally {
-            setIsLoading(false);
+            if (showLoading) setIsLoading(false);
+        }
+    };
+
+    const handleRefresh = async () => {
+        setIsRefreshing(true);
+        try {
+            await fetchOrders(false);
+            toast.success('Orders refreshed!');
+        } catch (error) {
+            toast.error('Failed to refresh orders');
+        } finally {
+            setIsRefreshing(false);
         }
     };
 
     useEffect(() => {
-        fetchOrders();
+        fetchOrders(true);
         
         socket.on('new_order', (order) => {
             setOrders(prev => [order, ...prev.filter(o => o._id !== order._id)]);
@@ -48,7 +61,7 @@ const AdminOrders = () => {
             }
         });
 
-        const interval = setInterval(fetchOrders, 10000);
+        const interval = setInterval(() => fetchOrders(false), 10000);
         return () => {
             clearInterval(interval);
             socket.off('new_order');
@@ -96,9 +109,20 @@ const AdminOrders = () => {
                     <h1 className="text-3xl font-extrabold text-[#222222] tracking-tight">Active Orders</h1>
                     <p className="text-[#818181] text-xs mt-1">Live customer tickets and order statuses.</p>
                 </div>
-                <div className="flex bg-white p-1 rounded-full border border-[#EBEBEB] shadow-xs self-start">
-                    <div className="flex items-center gap-2 px-5 py-2 rounded-full text-xs font-bold bg-[#5A724A] text-white shadow-xs">
-                        Active Tickets: {orders.filter(o => !['Paid', 'Served'].includes(o.status)).length}
+                <div className="flex flex-wrap items-center gap-2.5 self-start md:self-auto">
+                    <button
+                        onClick={handleRefresh}
+                        disabled={isRefreshing}
+                        className="bg-white hover:bg-[#F8F8F8] border border-[#EBEBEB] text-[#222222] px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-2 shadow-xs hover:border-[#5A724A]/40 active:scale-95 disabled:opacity-60 cursor-pointer"
+                        title="Refresh Orders"
+                    >
+                        <RefreshCw size={14} className={clsx("text-[#5A724A]", isRefreshing && "animate-spin")} />
+                        <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
+                    </button>
+                    <div className="flex bg-white p-1 rounded-full border border-[#EBEBEB] shadow-xs">
+                        <div className="flex items-center gap-2 px-5 py-1.5 rounded-full text-xs font-bold bg-[#5A724A] text-white shadow-xs">
+                            Active Tickets: {orders.filter(o => !['Paid', 'Served'].includes(o.status)).length}
+                        </div>
                     </div>
                 </div>
             </div>

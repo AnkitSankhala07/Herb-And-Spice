@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Card } from '../../components/ui/Card';
-import { TrendingUp, Users, DollarSign, Activity, AlertTriangle, ArrowUpRight, Flame, CalendarDays, CalendarRange, Calendar, Package } from 'lucide-react';
+import { TrendingUp, Users, DollarSign, Activity, AlertTriangle, ArrowUpRight, Flame, CalendarDays, CalendarRange, Calendar, Package, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import clsx from 'clsx';
 import { api } from '../../services/api';
+import toast from 'react-hot-toast';
 
 const PERIOD_TABS = [
     { key: 'daily', label: 'Today', icon: CalendarDays },
@@ -29,19 +30,26 @@ const AdminDashboard = () => {
     const [salesData, setSalesData] = useState({ daily: null, weekly: null, monthly: null });
     const [activePeriod, setActivePeriod] = useState('daily');
     const [lowStockItems, setLowStockItems] = useState([]);
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
-    useEffect(() => {
-        const fetchStats = async () => {
-            try {
-                const { data } = await api.get('/analytics/dashboard');
+    const refreshAllData = async (showToast = false) => {
+        if (showToast) setIsRefreshing(true);
+        try {
+            const [dashboardRes, salesRes, stockRes] = await Promise.allSettled([
+                api.get('/analytics/dashboard'),
+                api.get('/analytics/sales-overview'),
+                api.get('/inventory/low-stock')
+            ]);
+
+            if (dashboardRes.status === 'fulfilled') {
+                const data = dashboardRes.value.data;
                 setStats({
                     revenue: data.revenue,
                     ordersToday: data.ordersToday,
                     activeOrders: `${data.activeOrders}/12`,
                     systemStatus: 'Healthy'
                 });
-            } catch (err) {
-                console.error(err);
+            } else {
                 setStats({
                     revenue: 45280,
                     ordersToday: 64,
@@ -49,29 +57,30 @@ const AdminDashboard = () => {
                     systemStatus: 'Optimal'
                 });
             }
-        };
 
-        const fetchSalesOverview = async () => {
-            try {
-                const { data } = await api.get('/analytics/sales-overview');
-                setSalesData(data);
-            } catch (err) {
-                console.error('Sales overview fetch failed:', err);
+            if (salesRes.status === 'fulfilled') {
+                setSalesData(salesRes.value.data);
             }
-        };
 
-        const fetchLowStock = async () => {
-            try {
-                const { data } = await api.get('/inventory/low-stock');
-                setLowStockItems(data);
-            } catch (err) {
-                console.error('Low stock fetch failed:', err);
+            if (stockRes.status === 'fulfilled') {
+                setLowStockItems(stockRes.value.data);
             }
-        };
 
-        fetchStats();
-        fetchSalesOverview();
-        fetchLowStock();
+            if (showToast) {
+                toast.success('Dashboard metrics refreshed!');
+            }
+        } catch (err) {
+            console.error('Failed to refresh dashboard', err);
+            if (showToast) {
+                toast.error('Failed to refresh dashboard');
+            }
+        } finally {
+            if (showToast) setIsRefreshing(false);
+        }
+    };
+
+    useEffect(() => {
+        refreshAllData(false);
     }, []);
 
     const statCards = [
@@ -85,9 +94,22 @@ const AdminDashboard = () => {
 
     return (
         <div className="p-2 md:p-4 max-w-[1600px] mx-auto text-[#222222]">
-            <div className="mb-8">
-                <h1 className="text-3xl font-extrabold text-[#222222] tracking-tight">Executive Dashboard</h1>
-                <p className="text-[#818181] text-xs mt-1">Live operational and culinary revenue insights</p>
+            <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-3xl font-extrabold text-[#222222] tracking-tight">Executive Dashboard</h1>
+                    <p className="text-[#818181] text-xs mt-1">Live operational and culinary revenue insights</p>
+                </div>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => refreshAllData(true)}
+                        disabled={isRefreshing}
+                        className="bg-white hover:bg-[#F8F8F8] border border-[#EBEBEB] text-[#222222] px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-2 shadow-xs hover:border-[#5A724A]/40 active:scale-95 disabled:opacity-60 cursor-pointer"
+                        title="Refresh Dashboard"
+                    >
+                        <RefreshCw size={14} className={clsx("text-[#5A724A]", isRefreshing && "animate-spin")} />
+                        <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
+                    </button>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

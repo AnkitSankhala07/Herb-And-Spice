@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card } from '../../components/ui/Card';
 import {
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     BarChart, Bar, PieChart, Pie, Cell, Legend, AreaChart, Area
 } from 'recharts';
-import { Download, FileText, FileSpreadsheet, DollarSign, TrendingUp, Users, Calendar, Sparkles, CalendarDays, CalendarRange, ShoppingCart } from 'lucide-react';
+import { Download, FileText, FileSpreadsheet, DollarSign, TrendingUp, Users, Calendar, Sparkles, CalendarDays, CalendarRange, ShoppingCart, RefreshCw } from 'lucide-react';
 import { api } from '../../services/api';
 import toast from 'react-hot-toast';
 import clsx from 'clsx';
@@ -39,6 +39,7 @@ const Analytics = () => {
     const [insightsLoading, setInsightsLoading] = useState(true);
     const [activePeriod, setActivePeriod] = useState('daily');
     const [loading, setLoading] = useState(true);
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
     const [exportFormat, setExportFormat] = useState('pdf');
     const [exportStartDate, setExportStartDate] = useState(() => new Date().toISOString().split('T')[0]);
@@ -95,71 +96,84 @@ const Analytics = () => {
         }
     };
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const [dashboardRes, trendsRes, topItemsRes, salesOverviewRes] = await Promise.all([
-                    api.get('/analytics/dashboard'),
-                    api.get('/analytics/trends'),
-                    api.get('/analytics/top-items'),
-                    api.get('/analytics/sales-overview')
-                ]);
+    const fetchData = useCallback(async (isInitial = true) => {
+        if (isInitial) setLoading(true);
+        try {
+            const [dashboardRes, trendsRes, topItemsRes, salesOverviewRes] = await Promise.all([
+                api.get('/analytics/dashboard'),
+                api.get('/analytics/trends'),
+                api.get('/analytics/top-items'),
+                api.get('/analytics/sales-overview')
+            ]);
 
-                setStats({
-                    ...dashboardRes.data,
-                    avgOrderValue: dashboardRes.data.avgOrderValue || 850
-                });
+            setStats({
+                ...dashboardRes.data,
+                avgOrderValue: dashboardRes.data.avgOrderValue || 850
+            });
 
-                setSalesTrends(trendsRes.data?.length ? trendsRes.data : [
-                    { name: '10 AM', sales: 400 }, { name: '12 PM', sales: 3000 },
-                    { name: '2 PM', sales: 4500 }, { name: '4 PM', sales: 1500 },
-                    { name: '6 PM', sales: 3200 }, { name: '8 PM', sales: 5000 },
-                    { name: '10 PM', sales: 4200 }
-                ]);
+            setSalesTrends(trendsRes.data?.length ? trendsRes.data : [
+                { name: '10 AM', sales: 400 }, { name: '12 PM', sales: 3000 },
+                { name: '2 PM', sales: 4500 }, { name: '4 PM', sales: 1500 },
+                { name: '6 PM', sales: 3200 }, { name: '8 PM', sales: 5000 },
+                { name: '10 PM', sales: 4200 }
+            ]);
 
-                setTopItems(topItemsRes.data?.length ? topItemsRes.data : [
-                    { name: 'Gourmet Cheeseburger', count: 45 },
-                    { name: 'Artisan Pizza', count: 38 },
-                    { name: 'Paneer Crunch Burger', count: 25 },
-                    { name: 'Hickory BBQ Wings', count: 20 },
-                    { name: 'Botanical Herb Soda', count: 18 }
-                ]);
+            setTopItems(topItemsRes.data?.length ? topItemsRes.data : [
+                { name: 'Gourmet Cheeseburger', count: 45 },
+                { name: 'Artisan Pizza', count: 38 },
+                { name: 'Paneer Crunch Burger', count: 25 },
+                { name: 'Hickory BBQ Wings', count: 20 },
+                { name: 'Botanical Herb Soda', count: 18 }
+            ]);
 
-                setSalesData(salesOverviewRes.data);
-            } catch (error) {
-                console.error("Failed to fetch analytics", error);
-                setStats({ revenue: 45280, ordersToday: 64, activeOrders: 8, avgOrderValue: 705 });
-                setSalesTrends([
-                    { name: '10 AM', sales: 400 }, { name: '12 PM', sales: 3000 },
-                    { name: '2 PM', sales: 4500 }, { name: '4 PM', sales: 1500 },
-                    { name: '6 PM', sales: 3200 }, { name: '8 PM', sales: 5000 },
-                    { name: '10 PM', sales: 4200 }
-                ]);
-                setTopItems([
-                    { name: 'Gourmet Cheeseburger', count: 45 },
-                    { name: 'Artisan Pizza', count: 38 },
-                    { name: 'Paneer Crunch Burger', count: 25 },
-                ]);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        const fetchInsights = async () => {
-            setInsightsLoading(true);
-            try {
-                const insightsRes = await api.get('/analytics/insights');
-                setAiInsights(insightsRes.data?.insights || []);
-            } catch (e) {
-                setAiInsights([]);
-            } finally {
-                setInsightsLoading(false);
-            }
-        };
-
-        fetchData();
-        fetchInsights();
+            setSalesData(salesOverviewRes.data);
+        } catch (error) {
+            console.error("Failed to fetch analytics", error);
+            setStats({ revenue: 45280, ordersToday: 64, activeOrders: 8, avgOrderValue: 705 });
+            setSalesTrends([
+                { name: '10 AM', sales: 400 }, { name: '12 PM', sales: 3000 },
+                { name: '2 PM', sales: 4500 }, { name: '4 PM', sales: 1500 },
+                { name: '6 PM', sales: 3200 }, { name: '8 PM', sales: 5000 },
+                { name: '10 PM', sales: 4200 }
+            ]);
+            setTopItems([
+                { name: 'Gourmet Cheeseburger', count: 45 },
+                { name: 'Artisan Pizza', count: 38 },
+                { name: 'Paneer Crunch Burger', count: 25 },
+            ]);
+        } finally {
+            if (isInitial) setLoading(false);
+        }
     }, []);
+
+    const fetchInsights = useCallback(async (isInitial = true) => {
+        if (isInitial) setInsightsLoading(true);
+        try {
+            const insightsRes = await api.get('/analytics/insights');
+            setAiInsights(insightsRes.data?.insights || []);
+        } catch (e) {
+            setAiInsights([]);
+        } finally {
+            if (isInitial) setInsightsLoading(false);
+        }
+    }, []);
+
+    const handleRefresh = async () => {
+        setIsRefreshing(true);
+        try {
+            await Promise.all([fetchData(false), fetchInsights(false)]);
+            toast.success('Analytics data refreshed!');
+        } catch (error) {
+            toast.error('Failed to refresh analytics');
+        } finally {
+            setIsRefreshing(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchData(true);
+        fetchInsights(true);
+    }, [fetchData, fetchInsights]);
 
     if (loading) {
         return (
@@ -187,8 +201,20 @@ const Analytics = () => {
                     <p className="text-[#818181] text-xs mt-1">Deep dive into revenue trends, order velocity, and menu performance.</p>
                 </div>
                 
-                {/* Reporting Export Toolbar */}
+                {/* Reporting Export & Refresh Toolbar */}
                 <div className="bg-white border border-[#EBEBEB] px-4 py-2.5 rounded-full flex flex-wrap items-center gap-2.5 shadow-xs">
+                    <button
+                        onClick={handleRefresh}
+                        disabled={isRefreshing}
+                        className="bg-[#F8F8F8] hover:bg-[#EBEBEB] text-[#222222] border border-[#EBEBEB] px-3.5 py-1 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+                        title="Refresh Analytics Data"
+                    >
+                        <RefreshCw size={13} className={clsx("text-[#5A724A]", isRefreshing && "animate-spin")} />
+                        <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
+                    </button>
+
+                    <div className="h-5 w-px bg-[#EBEBEB] mx-0.5 hidden sm:block" />
+
                     <div className="flex items-center gap-2">
                         <CalendarDays size={15} className="text-[#5A724A]" />
                         <input 
@@ -206,7 +232,7 @@ const Analytics = () => {
                         />
                     </div>
                     
-                    <div className="h-5 w-px bg-[#EBEBEB] mx-1 hidden sm:block" />
+                    <div className="h-5 w-px bg-[#EBEBEB] mx-0.5 hidden sm:block" />
                     
                     <select 
                         className="bg-[#F8F8F8] border border-[#EBEBEB] text-[#222222] text-xs rounded-full px-3 py-1 outline-none font-medium"
