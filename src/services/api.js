@@ -76,6 +76,24 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response && error.response.status === 401) {
+            const path = typeof window !== 'undefined' ? window.location.pathname : '';
+            if (path.startsWith('/admin') || path.startsWith('/waiter') || path.startsWith('/kitchen')) {
+                if (!path.includes('/login')) {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    const role = path.split('/')[1] || 'admin';
+                    window.location.href = `/${role}/login`;
+                }
+            }
+        }
+        return Promise.reject(error);
+    }
+);
+
 export const getMenu = async () => {
     const response = await api.get('/menu');
     return response.data;

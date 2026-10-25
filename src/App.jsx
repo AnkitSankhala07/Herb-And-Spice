@@ -163,6 +163,7 @@ const AnimatedRoutes = () => {
         <Route path="/kitchen/login" element={<Login role="Kitchen" />} />
 
         <Route path="/admin" element={<DashboardLayout role="admin" />}>
+          <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="inventory" element={<InventoryPage />} />
           <Route path="menu" element={<InventoryPage />} />
@@ -173,11 +174,13 @@ const AnimatedRoutes = () => {
         </Route>
 
         <Route path="/waiter" element={<DashboardLayout role="waiter" />}>
+          <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<WaiterDashboard />} />
           <Route path="orders" element={<WaiterOrders />} />
         </Route>
 
         <Route path="/kitchen" element={<DashboardLayout role="kitchen" />}>
+          <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<KitchenDashboard />} />
         </Route>
 
