@@ -202,22 +202,6 @@ npm run dev
 
 ---
 
-## 📡 Key API Routes
-
-| Endpoint | Method | Description |
-| :--- | :--- | :--- |
-| `/api/auth/login` | `POST` | User authentication & JWT issuance |
-| `/api/menu` | `GET`, `POST` | Fetch menu items or add dishes |
-| `/api/orders` | `GET`, `POST` | Retrieve active orders or create a dining order |
-| `/api/orders/:id/status` | `PUT` | Update order progression status |
-| `/api/tables` | `GET`, `PUT` | View table statuses or assign guests |
-| `/api/inventory` | `GET`, `POST` | Manage stock, view low stock warnings |
-| `/api/reports/sales/pdf` | `GET` | Export sales report in PDF |
-| `/api/reports/sales/excel`| `GET` | Export sales report in Excel (`.xlsx`) |
-| `/api/ai/chat` | `POST` | Query AI culinary assistant |
-
----
-
 ## 📄 License
 
 This project is licensed under the [ISC License](LICENSE).
