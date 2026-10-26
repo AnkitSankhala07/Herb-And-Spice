@@ -202,6 +202,20 @@ npm run dev
 
 ---
 
+
+## 👥 Project Contributors
+
+This project was collaboratively developed by:
+
+| Contributor | Role | GitHub |
+|---|---|---|
+| Ankit Sankhala | Co-Developer | [@AnkitSankhala07](https://github.com/AnkitSankhala07) |
+| Dhruv Bhavin Shah | Co-Developer | [@Dhruv051105](https://github.com/Dhruv051105) |
+
+Both contributors collaborated on the development of Herb & Spice, a smart restaurant management and POS system.
+
+**Live Demo:** [Herb & Spice](https://herb-and-spice.vercel.app/)
+
 ## 📄 License
 
 This project is licensed under the [ISC License](LICENSE).
